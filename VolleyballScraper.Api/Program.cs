@@ -1,4 +1,4 @@
-using VoleybolScraper.Api.Services;
+using VolleyballScraper.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +14,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 
 
-builder.Services.AddHttpClient("VoleybolClient", client =>
+builder.Services.AddHttpClient("VolleyballClient", client =>
 {
     client.DefaultRequestHeaders.Add("User-Agent",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
@@ -25,7 +25,7 @@ builder.Services.AddHttpClient("VoleybolClient", client =>
 });
 
 // Register our Scraper Service
-builder.Services.AddScoped<VoleybolScraperService>();
+builder.Services.AddScoped<VolleyballScraperService>();
 
 // Enable CORS (Since your Vue app will run on a different port)
 builder.Services.AddCors(options =>

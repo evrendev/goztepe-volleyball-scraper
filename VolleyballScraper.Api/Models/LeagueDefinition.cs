@@ -1,4 +1,4 @@
-namespace VoleybolScraper.Api.Models;
+namespace VolleyballScraper.Api.Models;
 
 public record LeagueDefinition(
     string Code,
@@ -8,7 +8,7 @@ public record LeagueDefinition(
 
 public static class SupportedLeagues
 {
-    // Kategori kodları sitedeki <option value="..."> ile birebir eşleşmeli:
+    // Category codes must game exactly with <option value="..."> on the site:
     // GK, YK, KK, MdK, MnK, BB
     public static readonly List<LeagueDefinition> All =
     [

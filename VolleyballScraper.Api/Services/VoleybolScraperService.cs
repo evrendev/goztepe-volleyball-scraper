@@ -1,80 +1,80 @@
 using HtmlAgilityPack;
-using VoleybolScraper.Api.Models;
+using VolleyballScraper.Api.Models;
 
-namespace VoleybolScraper.Api.Services;
+namespace VolleyballScraper.Api.Services;
 
-public class VoleybolScraperService
+public class VolleyballScraperService
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger<VoleybolScraperService> _logger;
+    private readonly ILogger<VolleyballScraperService> _logger;
     private const string BaseUrl = "https://izmir.voleyboliltemsilciligi.com/Fiksturler";
 
-    public VoleybolScraperService(IHttpClientFactory httpClientFactory,
-                                   ILogger<VoleybolScraperService> logger)
+    public VolleyballScraperService(IHttpClientFactory httpClientFactory,
+                                   ILogger<VolleyballScraperService> logger)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
 
-    public async Task<List<Mac>> GetMaclarAsync(FiksturRequest request)
+    public async Task<List<Game>> GetGameesAsync(FixtureRequest request)
     {
-        // Hiç küme seçilmemişse desteklenen tüm kümeleri çek
+        // If no leagues selected, fetch all supported leagues
         var targetLeagues = request.Leagues.Count > 0
             ? request.Leagues
             : SupportedLeagues.All.Select(l => l.Code).Distinct().ToList();
 
-        var client = _httpClientFactory.CreateClient("VoleybolClient");
+        var client = _httpClientFactory.CreateClient("VolleyballClient");
 
-        // Her küme için session'ı yeniden başlatmamak adına
-        // cookie + viewstate'i bir kere al, her küme için yeniden kullan
-        var allMatches = new List<Mac>();
+        // To avoid restarting session for each league,
+        // get cookie + viewstate once, reuse for each league
+        var allGamees = new List<Game>();
 
         foreach (var leagueCode in targetLeagues)
         {
             var league = SupportedLeagues.Find(leagueCode);
             if (league == null)
             {
-                _logger.LogWarning("Bilinmeyen kume kodu: {code}", leagueCode);
+                _logger.LogWarning("Unknown league code: {code}", leagueCode);
                 continue;
             }
 
-            _logger.LogInformation("Kume cekiliyor: {code}", leagueCode);
+            _logger.LogInformation("Fetching league: {code}", leagueCode);
 
             try
             {
-                var matches = await FetchLeagueAsync(client, request, league);
-                allMatches.AddRange(matches);
-                _logger.LogInformation("{code} → {count} mac", leagueCode, matches.Count);
+                var gamees = await FetchLeagueAsync(client, request, league);
+                allGamees.AddRange(gamees);
+                _logger.LogInformation("{code} → {count} gamees", leagueCode, gamees.Count);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Kume cekilemedi: {code}", leagueCode);
+                _logger.LogError(ex, "Failed to fetch league: {code}", leagueCode);
             }
 
-            // Siteye aşırı yük bindirmemek için kısa bekleme
+            // Short delay to avoid overloading the site
             await Task.Delay(300);
         }
 
-        // Tarihe göre sırala
-        return allMatches
-            .OrderBy(m => ParseDate(m.Tarih))
-            .ThenBy(m => m.Saat)
+        // Sort by date
+        return allGamees
+            .OrderBy(m => ParseDate(m.Date))
+            .ThenBy(m => m.Time)
             .ToList();
     }
 
-    private async Task<List<Mac>> FetchLeagueAsync(
-        HttpClient client, FiksturRequest request, LeagueDefinition league)
+    private async Task<List<Game>> FetchLeagueAsync(
+        HttpClient client, FixtureRequest request, LeagueDefinition league)
     {
         var (viewState, viewStateGen, cookie) = await GetViewStateAsync(client);
-        _logger.LogInformation("[{code}] VIEWSTATE alindi.", league.Code);
+        _logger.LogInformation("[{code}] VIEWSTATE retrieved.", league.Code);
 
-        // Adım 1: Sezon
+        // Step 1: Season
         (viewState, viewStateGen) = await PostStepAsync(
             client, cookie, viewState, viewStateGen,
             eventTarget: "ctl00$icerik$ddlsezon",
             extraFields: new()
             {
-                ["ctl00$icerik$ddlsezon"] = request.SezonId,
+                ["ctl00$icerik$ddlsezon"] = request.SeasonId,
                 ["ctl00$icerik$ddlsbe"] = request.Gender,
                 ["ctl00$icerik$ddlskategori"] = "0",
                 ["ctl00$icerik$ddlskume"] = "0",
@@ -84,15 +84,15 @@ public class VoleybolScraperService
                 ["ctl00$icerik$ddlstakim"] = "0",
                 ["ctl00$icerik$ddlsyarismaadi"] = "0",
             });
-        _logger.LogInformation("[{code}] Sezon secildi: {season}", league.Code, request.SezonId);
+        _logger.LogInformation("[{code}] Season selected: {season}", league.Code, request.SeasonId);
 
-        // Adım 2: Kategori — ham yanıtı logla
+        // Step 2: Category — log raw response
         var categoryRaw = await PostStepRawAsync(
             client, cookie, viewState, viewStateGen,
             eventTarget: "ctl00$icerik$ddlskategori",
             extraFields: new()
             {
-                ["ctl00$icerik$ddlsezon"] = request.SezonId,
+                ["ctl00$icerik$ddlsezon"] = request.SeasonId,
                 ["ctl00$icerik$ddlsbe"] = request.Gender,
                 ["ctl00$icerik$ddlskategori"] = league.Category,
                 ["ctl00$icerik$ddlskume"] = "0",
@@ -103,10 +103,10 @@ public class VoleybolScraperService
                 ["ctl00$icerik$ddlsyarismaadi"] = "0",
             });
 
-        // Küme listesinin dolup dolmadığını kontrol et
+        // Check if league list is populated
         var hasLeagueCode = categoryRaw.Contains(league.Code);
         _logger.LogInformation(
-            "[{code}] Kategori POST sonrasi kume listesinde {code} var mi: {result}. Yanit(500): {raw}",
+            "[{code}] After category POST, is {code} in league list: {result}. Response(500): {raw}",
             league.Code, league.Code, hasLeagueCode,
             categoryRaw[..Math.Min(500, categoryRaw.Length)]);
 
@@ -115,13 +115,13 @@ public class VoleybolScraperService
         if (!string.IsNullOrEmpty(newVsFromCat)) viewState = newVsFromCat;
         if (!string.IsNullOrEmpty(newGenFromCat)) viewStateGen = newGenFromCat;
 
-        // Adım 3: Küme
-        var kumeRaw = await PostStepRawAsync(
+        // Step 3: League
+        var leagueRaw = await PostStepRawAsync(
             client, cookie, viewState, viewStateGen,
             eventTarget: "ctl00$icerik$ddlskume",
             extraFields: new()
             {
-                ["ctl00$icerik$ddlsezon"] = request.SezonId,
+                ["ctl00$icerik$ddlsezon"] = request.SeasonId,
                 ["ctl00$icerik$ddlsbe"] = request.Gender,
                 ["ctl00$icerik$ddlskategori"] = league.Category,
                 ["ctl00$icerik$ddlskume"] = league.Code,
@@ -132,48 +132,48 @@ public class VoleybolScraperService
                 ["ctl00$icerik$ddlsyarismaadi"] = "0",
             });
 
-        // Kurum listesinin dolup dolmadığını kontrol et
-        var hasKurumId = kumeRaw.Contains($"value=\"{request.KurumId}\"");
+        // Check if organization list is populated
+        var hasOrganizationId = leagueRaw.Contains($"value=\"{request.OrganizationId}\"");
         _logger.LogInformation(
-            "[{code}] Kume POST sonrasi kurumId={kurumId} listede var mi: {result}",
-            league.Code, request.KurumId, hasKurumId);
+            "[{code}] After league POST, is organizationId={organizationId} in list: {result}",
+            league.Code, request.OrganizationId, hasOrganizationId);
 
-        var newVsFromKume = ExtractHiddenField(kumeRaw, "__VIEWSTATE");
-        var newGenFromKume = ExtractHiddenField(kumeRaw, "__VIEWSTATEGENERATOR");
-        if (!string.IsNullOrEmpty(newVsFromKume)) viewState = newVsFromKume;
-        if (!string.IsNullOrEmpty(newGenFromKume)) viewStateGen = newGenFromKume;
+        var newVsFromLeague = ExtractHiddenField(leagueRaw, "__VIEWSTATE");
+        var newGenFromLeague = ExtractHiddenField(leagueRaw, "__VIEWSTATEGENERATOR");
+        if (!string.IsNullOrEmpty(newVsFromLeague)) viewState = newVsFromLeague;
+        if (!string.IsNullOrEmpty(newGenFromLeague)) viewStateGen = newGenFromLeague;
 
-        // Adım 4: Kurum → maçlar
-        var matchesRaw = await PostStepRawAsync(
+        // Step 4: Organization → gamees
+        var gameesRaw = await PostStepRawAsync(
             client, cookie, viewState, viewStateGen,
             eventTarget: "ctl00$icerik$ddlskurumadi",
             extraFields: new()
             {
-                ["ctl00$icerik$ddlsezon"] = request.SezonId,
+                ["ctl00$icerik$ddlsezon"] = request.SeasonId,
                 ["ctl00$icerik$ddlsbe"] = request.Gender,
                 ["ctl00$icerik$ddlskategori"] = league.Category,
                 ["ctl00$icerik$ddlskume"] = league.Code,
                 ["ctl00$icerik$ddlsturu"] = "0",
                 ["ctl00$icerik$ddlsgrubu"] = "0",
-                ["ctl00$icerik$ddlskurumadi"] = request.KurumId,
+                ["ctl00$icerik$ddlskurumadi"] = request.OrganizationId,
                 ["ctl00$icerik$ddlstakim"] = "0",
                 ["ctl00$icerik$ddlsyarismaadi"] = "0",
             });
 
-        var kayitSayisi = ExtractRecordCount(matchesRaw);
+        var recordCount = ExtractRecordCount(gameesRaw);
         _logger.LogInformation(
-            "[{code}] Mac POST tamamlandi. Kayit sayisi: {count}",
-            league.Code, kayitSayisi);
+            "[{code}] Game POST completed. Record count: {count}",
+            league.Code, recordCount);
 
-        var matches = ParseMatches(matchesRaw);
+        var gamees = ParseGamees(gameesRaw);
 
-        foreach (var m in matches)
+        foreach (var m in gamees)
             m.League = league.DisplayName;
 
-        return matches;
+        return gamees;
     }
 
-    // Sayfadaki "Kayit" alanındaki kırmızı sayıyı çek
+    // Extract the red number from the "Record" field on the page
     private static string ExtractRecordCount(string delta)
     {
         var html = ExtractUpdatePanelHtml(delta);
@@ -273,59 +273,59 @@ public class VoleybolScraperService
 
     // ── Parse ───────────────────────────────────────────────────────
 
-    private List<Mac> ParseMatchesFromHtml(string html, string leagueDisplay)
+    private List<Game> ParseGameesFromHtml(string html, string leagueDisplay)
     {
-        var matches = new List<Mac>();
+        var gamees = new List<Game>();
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
         var table = doc.GetElementbyId("icerik_gvliste")
                     ?? doc.DocumentNode.SelectSingleNode("//table");
-        if (table == null) return matches;
+        if (table == null) return gamees;
 
         var rows = table.SelectNodes(".//tr");
-        if (rows == null || rows.Count < 2) return matches;
+        if (rows == null || rows.Count < 2) return gamees;
 
         foreach (var row in rows.Skip(1))
         {
-            // Sayfalama satırını class'tan anla
+            // Understand pagination row from class
             if (row.GetAttributeValue("class", "").Contains("pagination")) continue;
 
             var cols = row.SelectNodes(".//td");
             if (cols == null || cols.Count < 6) continue;
 
-            var tarih = Clean(cols[0].InnerText);
-            if (!IsValidDate(tarih)) continue;
+            var date = Clean(cols[0].InnerText);
+            if (!IsValidDate(date)) continue;
 
-            // Skor: col[5] = C kolonu (B/E gösterge, gerçek skor değil)
-            // Gerçek skor geldiğinde "3-1" formatında olur, "B" değil
-            var skorRaw = cols.Count > 5 ? Clean(cols[5].InnerText) : "";
-            var skor = (skorRaw == "B" || skorRaw == "E") ? "" : skorRaw;
+            // Score: col[5] = C column (B/E indicator, not real score)
+            // Real score comes in "3-1" format when available, not "B"
+            var scoreRaw = cols.Count > 5 ? Clean(cols[5].InnerText) : "";
+            var score = (scoreRaw == "B" || scoreRaw == "E") ? "" : scoreRaw;
 
-            matches.Add(new Mac
+            gamees.Add(new Game
             {
-                Tarih = tarih,
-                Saat = cols.Count > 1 ? Clean(cols[1].InnerText) : "",
-                Salon = cols.Count > 2 ? Clean(cols[2].InnerText) : "",
-                EvSahibi = cols.Count > 3 ? Clean(cols[3].InnerText) : "",
-                Misafir = cols.Count > 4 ? Clean(cols[4].InnerText) : "",
-                Skor = skor,
-                Kume = cols.Count > 6 ? Clean(cols[6].InnerText) : "",
-                Grup = cols.Count > 9 ? Clean(cols[9].InnerText) : "",
+                Date = date,
+                Time = cols.Count > 1 ? Clean(cols[1].InnerText) : "",
+                Venue = cols.Count > 2 ? Clean(cols[2].InnerText) : "",
+                HomeTeam = cols.Count > 3 ? Clean(cols[3].InnerText) : "",
+                AwayTeam = cols.Count > 4 ? Clean(cols[4].InnerText) : "",
+                Score = score,
+                Division = cols.Count > 6 ? Clean(cols[6].InnerText) : "",
+                Group = cols.Count > 9 ? Clean(cols[9].InnerText) : "",
                 League = leagueDisplay,
             });
         }
 
-        return matches;
+        return gamees;
     }
 
-    // Sayfa numaralarını çek — pagination satırından
+    // Extract page numbers — from pagination row
     private static List<int> ExtractPageNumbers(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
-        var pages = new List<int> { 1 }; // İlk sayfa her zaman var
+        var pages = new List<int> { 1 }; // First page is always available
 
         var paginationRow = doc.DocumentNode
             .SelectSingleNode("//tr[contains(@class,'pagination')]");
@@ -337,8 +337,8 @@ public class VoleybolScraperService
             foreach (var link in links)
             {
                 var href = link.GetAttributeValue("href", "");
-                var match = System.Text.RegularExpressions.Regex.Match(href, @"Page\$(\d+)");
-                if (match.Success && int.TryParse(match.Groups[1].Value, out var num))
+                var game = System.Text.RegularExpressions.Regex.Match(href, @"Page\$(\d+)");
+                if (game.Success && int.TryParse(game.Groups[1].Value, out var num))
                     if (!pages.Contains(num))
                         pages.Add(num);
             }
@@ -347,23 +347,23 @@ public class VoleybolScraperService
         return pages.OrderBy(p => p).ToList();
     }
 
-    // ParseMatches artık kullanılmıyor, eskiyle uyumluluk için yönlendir
-    private List<Mac> ParseMatches(string rawResponse) =>
-        ParseMatchesFromHtml(ExtractUpdatePanelHtml(rawResponse), "");
+    // ParseGamees is no longer used, redirect for backwards compatibility
+    private List<Game> ParseGamees(string rawResponse) =>
+        ParseGameesFromHtml(ExtractUpdatePanelHtml(rawResponse), "");
 
     // ── Helpers ─────────────────────────────────────────────────────
 
     private static bool IsPaginationRow(string text) =>
-        // Gerçek sayfalama: "12345678910..." gibi ardışık rakamlar
-        // "18.09.2025" gibi tarihler değil — noktasız hali kontrol etme
+        // Real pagination: consecutive numbers like "12345678910..."
+        // Not dates like "18.09.2025" — check version without dots
         !string.IsNullOrWhiteSpace(text) &&
-        !text.Contains('.') &&          // Tarihler nokta içerir, sayfalama satırları içermez
+        !text.Contains('.') &&          // Dates contain dots, pagination rows don't
         text.Replace(" ", "").All(char.IsDigit);
 
     private static bool IsValidDate(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return false;
-        // GG.AA.YYYY formatı
+        // DD.MM.YYYY format
         return System.Text.RegularExpressions.Regex.IsMatch(
             text, @"^\d{2}\.\d{2}\.\d{4}$");
     }
@@ -392,20 +392,20 @@ public class VoleybolScraperService
     {
         if (string.IsNullOrWhiteSpace(delta)) return delta;
 
-        // Delta formatı: "boyut|updatePanel|panelId|içerik|boyut|tip|..."
-        // Regex ile boyut|updatePanel|panelId| kalıbını bul
-        var match = System.Text.RegularExpressions.Regex.Match(
+        // Delta format: "size|updatePanel|panelId|content|size|type|..."
+        // Find pattern size|updatePanel|panelId| with regex
+        var game = System.Text.RegularExpressions.Regex.Match(
             delta,
             @"(\d+)\|updatePanel\|[^|]+\|",
             System.Text.RegularExpressions.RegexOptions.None);
 
-        if (!match.Success) return delta;
+        if (!game.Success) return delta;
 
         // Boyutu al
-        if (!int.TryParse(match.Groups[1].Value, out var size)) return delta;
+        if (!int.TryParse(game.Groups[1].Value, out var size)) return delta;
 
-        // İçerik match'in bittiği yerden başlar
-        var contentStart = match.Index + match.Length;
+        // İçerik game'in bittiği yerden başlar
+        var contentStart = game.Index + game.Length;
 
         if (contentStart + size > delta.Length)
             size = delta.Length - contentStart;
