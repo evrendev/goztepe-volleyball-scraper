@@ -1,19 +1,32 @@
 using VolleyballScraper.Api.Services;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
 builder.Services.AddControllers();
-
-// Register HttpClient
-builder.Services.AddHttpClient();
-
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddMemoryCache();
+// Swagger
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Göztepe Volleyball Fixture API",
+        Version = "v1",
+        Description = "Fetches Göztepe Sports Club volleyball fixture data " +
+                      "from İzmir Voleybol İl Temsilciliği.",
+        Contact = new OpenApiContact
+        {
+            Name = "Göztepe S.K."
+        }
+    });
+
+    // XML comment dosyasını dahil et
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+        options.IncludeXmlComments(xmlPath);
+});
 
 builder.Services.AddHttpClient("VolleyballClient", client =>
 {
@@ -25,36 +38,30 @@ builder.Services.AddHttpClient("VolleyballClient", client =>
     client.BaseAddress = new Uri("https://izmir.voleyboliltemsilciligi.com/");
 });
 
-// Register our Scraper Service
-builder.Services.AddScoped<VolleyballScraperService>();
+builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<GameCacheService>();
+builder.Services.AddScoped<VolleyballScraperService>();
 
-// Enable CORS (Since your Vue app will run on a different port)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
-        policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        });
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Swagger UI — tüm ortamlarda açık (production'da kısıtlamak istersen if bloğuna al)
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.MapOpenApi();
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Volleyball API v1");
+    options.RoutePrefix = "swagger"; // → https://localhost:PORT/swagger
+    options.DocumentTitle = "Göztepe Volleyball API";
+    options.DefaultModelsExpandDepth(-1); // Model şemalarını kapalı başlat
+});
 
 app.UseHttpsRedirection();
-
 app.UseCors("AllowAll");
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
