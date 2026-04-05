@@ -4,7 +4,7 @@ namespace VolleyballScraper.Api.Models;
 public class FixtureRequest
 {
     /// <example>2025-2026</example>
-    public string SeasonId { get; set; } = "2024-2025";
+    public string SeasonId { get; set; } = "2025-2026";
 
     // Fixed server-side
     public string OrganizationId { get; set; } = "662";
