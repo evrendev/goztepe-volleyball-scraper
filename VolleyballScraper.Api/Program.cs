@@ -11,6 +11,7 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddMemoryCache();
 
 builder.Services.AddHttpClient("VolleyballClient", client =>
 {
