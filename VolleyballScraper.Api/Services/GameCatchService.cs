@@ -1,9 +1,14 @@
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.FileSystemGlobbing;
+using VolleyballScraper.Api.Models;
+
 namespace VolleyballScraper.Api.Services;
 
-public class MatchCacheService
+public class GameCacheService
 {
-    private readonly IMemoryCache _cache;
-    private readonly ILogger<MatchCacheService> _logger;
+    private readonly GameCacheService _cache;
+    private readonly ILogger<GameCacheService> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     // Cache duration — fixtures rarely change
     private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(6);
@@ -12,30 +17,33 @@ public class MatchCacheService
     private readonly HashSet<string> _trackedKeys = [];
     private readonly Lock _keyLock = new();
 
-    public MatchCacheService(IMemoryCache cache, ILogger<MatchCacheService> logger)
+    public GameCacheService(IHttpClientFactory httpClientFactory,
+        ILogger<GameCacheService> logger,
+        GameCacheService cache)
     {
-        _cache = cache;
+        _httpClientFactory = httpClientFactory;
         _logger = logger;
+        _cache = cache;
     }
 
     public string BuildKey(string seasonId, string leagueCode) =>
         $"games:{seasonId}:{leagueCode}";
 
-    public bool TryGet(string key, out List<Match> matches)
+    public bool TryGet(string key, out List<Game> games)
     {
-        if (_cache.TryGetValue(key, out List<Match>? cached) && cached != null)
+        if (_cache.TryGetValue(key, out List<Game>? cached) && cached != null)
         {
             _logger.LogInformation("Cache HIT: {key}", key);
-            matches = cached;
+            games = cached;
             return true;
         }
 
         _logger.LogInformation("Cache MISS: {key}", key);
-        matches = [];
+        games = [];
         return false;
     }
 
-    public void Set(string key, List<Match> matches)
+    public void Set(string key, List<Game> games)
     {
         var options = new MemoryCacheEntryOptions
         {
@@ -44,13 +52,13 @@ public class MatchCacheService
             Priority = CacheItemPriority.Normal,
         };
 
-        _cache.Set(key, matches, options);
+        _cache.Set(key, games, options);
 
         lock (_keyLock)
             _trackedKeys.Add(key);
 
         _logger.LogInformation("Cache SET: {key} → {count} matches, {dur} hours valid",
-            key, matches.Count, CacheDuration.TotalHours);
+            key, Matcher.Count, CacheDuration.TotalHours);
     }
 
     public void Remove(string key)

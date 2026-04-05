@@ -1,19 +1,26 @@
+using HtmlAgilityPack;
+using VolleyballScraper.Api.Models;
+
 namespace VolleyballScraper.Api.Services;
 
 public class VolleyballScraperService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<VolleyballScraperService> _logger;
+    private readonly GameCacheService _cache;
     private const string BaseUrl = "https://izmir.voleyboliltemsilciligi.com/Fiksturler";
 
     public VolleyballScraperService(IHttpClientFactory httpClientFactory,
-                                   ILogger<VolleyballScraperService> logger)
+                                   ILogger<VolleyballScraperService> logger,
+                                   GameCacheService cache)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
+        _cache = cache;
     }
 
-    public async Task<List<Game>> GetGamesAsync(FixtureRequest request)
+    public async Task<List<Game>> GetGamesAsync(FixtureRequest request,
+                                                bool forceRefresh = false)
     {
         // If no leagues selected, fetch all supported leagues
         var targetLeagues = request.Leagues.Count > 0
@@ -21,10 +28,9 @@ public class VolleyballScraperService
             : SupportedLeagues.All.Select(l => l.Code).Distinct().ToList();
 
         var client = _httpClientFactory.CreateClient("VolleyballClient");
-
-        // To avoid restarting session for each league,
-        // get cookie + viewstate once, reuse for each league
         var allGames = new List<Game>();
+        var cacheHits = 0;
+        var cacheMisses = 0;
 
         foreach (var leagueCode in targetLeagues)
         {
@@ -35,11 +41,23 @@ public class VolleyballScraperService
                 continue;
             }
 
+            var cacheKey = _cache.BuildKey(request.SeasonId, leagueCode);
+
+            // Cache check
+            if (!forceRefresh && _cache.TryGet(cacheKey, out var cached))
+            {
+                allGames.AddRange(cached);
+                cacheHits++;
+                continue;
+            }
+
+            cacheMisses++;
             _logger.LogInformation("Fetching league: {code}", leagueCode);
 
             try
             {
                 var games = await FetchLeagueAsync(client, request, league);
+                _cache.Set(cacheKey, games);
                 allGames.AddRange(games);
                 _logger.LogInformation("{code} → {count} games", leagueCode, games.Count);
             }
@@ -48,9 +66,13 @@ public class VolleyballScraperService
                 _logger.LogError(ex, "Failed to fetch league: {code}", leagueCode);
             }
 
-            // Short delay to avoid overloading the site
-            await Task.Delay(300);
+            if (cacheMisses > 0)
+                await Task.Delay(300);
         }
+
+        _logger.LogInformation(
+            "Total: {total} games | Cache hit: {hits} | Scrape: {misses}",
+            allGames.Count, cacheHits, cacheMisses);
 
         // Sort by date
         return allGames
@@ -58,6 +80,8 @@ public class VolleyballScraperService
             .ThenBy(m => m.Time)
             .ToList();
     }
+
+
 
     private async Task<List<Game>> FetchLeagueAsync(
         HttpClient client, FixtureRequest request, LeagueDefinition league)
