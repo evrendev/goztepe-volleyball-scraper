@@ -20,6 +20,9 @@ public class VolleyballScraperService
         _cache = cache;
     }
 
+    // Max concurrent fetches to avoid hammering the external site
+    private static readonly SemaphoreSlim _fetchSemaphore = new(3, 3);
+
     public async Task<List<Game>> GetGamesAsync(FixtureRequest request,
                                                 bool forceRefresh = false)
     {
@@ -27,42 +30,48 @@ public class VolleyballScraperService
             ? request.Leagues
             : SupportedLeagues.All.Select(l => l.Code).Distinct().ToList();
 
-        var client = _httpClientFactory.CreateClient("VolleyballClient");
-        var allGames = new List<Game>();
         var cacheHits = 0;
         var cacheMisses = 0;
 
-        foreach (var leagueCode in targetLeagues)
-        {
-            var league = SupportedLeagues.Find(leagueCode);
-            if (league == null) continue;
-
-            var cacheKey = _cache.BuildKey(request.SeasonId, leagueCode);
-
-            if (!forceRefresh && _cache.TryGet(cacheKey, out var cached))
+        var tasks = targetLeagues
+            .Select(async leagueCode =>
             {
-                allGames.AddRange(cached);
-                cacheHits++;
-                continue;
-            }
+                var league = SupportedLeagues.Find(leagueCode);
+                if (league == null) return [];
 
-            cacheMisses++;
-            _logger.LogInformation("Fetching from site: {code}", leagueCode);
+                var cacheKey = _cache.BuildKey(request.SeasonId, leagueCode);
 
-            try
-            {
-                var games = await FetchLeagueAsync(client, request, league);
-                _cache.Set(cacheKey, games);
-                allGames.AddRange(games);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to fetch: {code}", leagueCode);
-            }
+                if (!forceRefresh && _cache.TryGet(cacheKey, out var cached))
+                {
+                    Interlocked.Increment(ref cacheHits);
+                    return cached;
+                }
 
-            if (cacheMisses > 0)
-                await Task.Delay(300);
-        }
+                Interlocked.Increment(ref cacheMisses);
+                _logger.LogInformation("Fetching from site: {code}", leagueCode);
+
+                await _fetchSemaphore.WaitAsync();
+                try
+                {
+                    var client = _httpClientFactory.CreateClient("VolleyballClient");
+                    var games = await FetchLeagueAsync(client, request, league);
+                    _cache.Set(cacheKey, games);
+                    return games;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to fetch: {code}", leagueCode);
+                    return [];
+                }
+                finally
+                {
+                    _fetchSemaphore.Release();
+                }
+            })
+            .ToList();
+
+        var results = await Task.WhenAll(tasks);
+        var allGames = results.SelectMany(g => g).ToList();
 
         _logger.LogInformation(
             "Total: {total} games | Cache hits: {hits} | Fetched: {misses}",
