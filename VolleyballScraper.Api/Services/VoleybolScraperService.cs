@@ -1,6 +1,3 @@
-using HtmlAgilityPack;
-using VolleyballScraper.Api.Models;
-
 namespace VolleyballScraper.Api.Services;
 
 public class VolleyballScraperService
