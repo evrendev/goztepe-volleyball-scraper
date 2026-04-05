@@ -38,3 +38,8 @@ msbuild.wrn
 
 #Claude AI
 .claude/
+
+# Node.js
+node_modules/
+dist/
+package-lock.json
