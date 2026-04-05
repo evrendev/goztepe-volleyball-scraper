@@ -1,74 +1,78 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { volleyballService } from '@/services/volleyballService'
-import type { Game, LeagueDefinition } from '@/types'
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import { volleyballService } from "@/services/volleyballService";
+import type { Game, LeagueDefinition } from "@/types";
 
-export const useVolleyballStore = defineStore('volleyball', () => {
-  const leagues = ref<LeagueDefinition[]>([])
-  const games = ref<Game[]>([])
-  const selectedLeagueCodes = ref<string[]>([])
-  const selectedSeason = ref('2024-2025')
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+export const useVolleyballStore = defineStore("volleyball", () => {
+  const leagues = ref<LeagueDefinition[]>([]);
+  const games = ref<Game[]>([]);
+  const selectedLeagueCodes = ref<string[]>([]);
+  const selectedSeason = ref("2025-2026");
+  const loading = ref(false);
+  const error = ref<string | null>(null);
 
-  const availableSeasons = ['2024-2025', '2023-2024', '2022-2023']
+  const availableSeasons = ["2025-2026", "2024-2025", "2023-2024", "2022-2023"];
 
   const filteredGames = computed(() => {
-    if (selectedLeagueCodes.value.length === 0) return games.value
-    return games.value.filter((g) => selectedLeagueCodes.value.includes(g.division))
-  })
+    if (selectedLeagueCodes.value.length === 0) return games.value;
+    return games.value.filter((g) =>
+      selectedLeagueCodes.value.includes(g.division),
+    );
+  });
 
   const gamesByLeague = computed(() => {
-    const grouped: Record<string, Game[]> = {}
+    const grouped: Record<string, Game[]> = {};
     for (const game of filteredGames.value) {
-      const key = game.league || game.division
-      if (!grouped[key]) grouped[key] = []
-      grouped[key].push(game)
+      const key = game.league || game.division;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(game);
     }
-    return grouped
-  })
+    return grouped;
+  });
 
   async function fetchLeagues() {
     try {
-      leagues.value = await volleyballService.getLeagues()
+      leagues.value = await volleyballService.getLeagues();
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Ligler yüklenemedi'
+      error.value = e instanceof Error ? e.message : "Ligler yüklenemedi";
     }
   }
 
   async function fetchGames(forceRefresh = false) {
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
     try {
       games.value = await volleyballService.getGames(
         {
           seasonId: selectedSeason.value,
-          leagues: selectedLeagueCodes.value.length ? selectedLeagueCodes.value : undefined,
+          leagues: selectedLeagueCodes.value.length
+            ? selectedLeagueCodes.value
+            : undefined,
         },
         forceRefresh,
-      )
+      );
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Fikstür yüklenemedi'
+      error.value = e instanceof Error ? e.message : "Fikstür yüklenemedi";
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   function toggleLeague(code: string) {
-    const idx = selectedLeagueCodes.value.indexOf(code)
+    const idx = selectedLeagueCodes.value.indexOf(code);
     if (idx === -1) {
-      selectedLeagueCodes.value.push(code)
+      selectedLeagueCodes.value.push(code);
     } else {
-      selectedLeagueCodes.value.splice(idx, 1)
+      selectedLeagueCodes.value.splice(idx, 1);
     }
   }
 
   function selectAllLeagues() {
-    selectedLeagueCodes.value = leagues.value.map((l) => l.code)
+    selectedLeagueCodes.value = leagues.value.map((l) => l.code);
   }
 
   function clearLeagueSelection() {
-    selectedLeagueCodes.value = []
+    selectedLeagueCodes.value = [];
   }
 
   return {
@@ -86,5 +90,5 @@ export const useVolleyballStore = defineStore('volleyball', () => {
     toggleLeague,
     selectAllLeagues,
     clearLeagueSelection,
-  }
-})
+  };
+});
