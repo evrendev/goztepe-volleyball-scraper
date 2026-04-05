@@ -7,7 +7,7 @@ public class FixtureRequest
     public string SeasonId { get; set; } = "2025-2026";
 
     // Fixed server-side
-    public string OrganizationId { get; set; } = "662";
+    public string OrganisationId { get; set; } = "662";
     public string Gender { get; set; } = "B";
 
     /// <summary>

@@ -24,54 +24,49 @@ public class VolleyballScraperService
     private static readonly SemaphoreSlim _fetchSemaphore = new(3, 3);
 
     public async Task<List<Game>> GetGamesAsync(FixtureRequest request,
-                                                bool forceRefresh = false)
+                                                 bool forceRefresh = false)
     {
         var targetLeagues = request.Leagues.Count > 0
             ? request.Leagues
             : SupportedLeagues.All.Select(l => l.Code).Distinct().ToList();
 
+        var allGames = new List<Game>();
         var cacheHits = 0;
         var cacheMisses = 0;
 
-        var tasks = targetLeagues
-            .Select(async leagueCode =>
+        // Sequential — not parallel — to avoid overwhelming the external site
+        foreach (var leagueCode in targetLeagues)
+        {
+            var league = SupportedLeagues.Find(leagueCode);
+            if (league == null) continue;
+
+            var cacheKey = _cache.BuildKey(request.SeasonId, leagueCode);
+
+            if (!forceRefresh && _cache.TryGet(cacheKey, out var cached))
             {
-                var league = SupportedLeagues.Find(leagueCode);
-                if (league == null) return [];
+                allGames.AddRange(cached);
+                cacheHits++;
+                continue;
+            }
 
-                var cacheKey = _cache.BuildKey(request.SeasonId, leagueCode);
+            cacheMisses++;
+            _logger.LogInformation("Fetching from site: {code}", leagueCode);
 
-                if (!forceRefresh && _cache.TryGet(cacheKey, out var cached))
-                {
-                    Interlocked.Increment(ref cacheHits);
-                    return cached;
-                }
+            try
+            {
+                var client = _httpClientFactory.CreateClient("VolleyballClient");
+                var games = await FetchLeagueAsync(client, request, league);
+                _cache.Set(cacheKey, games);
+                allGames.AddRange(games);
 
-                Interlocked.Increment(ref cacheMisses);
-                _logger.LogInformation("Fetching from site: {code}", leagueCode);
-
-                await _fetchSemaphore.WaitAsync();
-                try
-                {
-                    var client = _httpClientFactory.CreateClient("VolleyballClient");
-                    var games = await FetchLeagueAsync(client, request, league);
-                    _cache.Set(cacheKey, games);
-                    return games;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to fetch: {code}", leagueCode);
-                    return [];
-                }
-                finally
-                {
-                    _fetchSemaphore.Release();
-                }
-            })
-            .ToList();
-
-        var results = await Task.WhenAll(tasks);
-        var allGames = results.SelectMany(g => g).ToList();
+                // Brief pause between leagues to be polite to the site
+                await Task.Delay(500);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to fetch: {code}", leagueCode);
+            }
+        }
 
         _logger.LogInformation(
             "Total: {total} games | Cache hits: {hits} | Fetched: {misses}",
@@ -152,45 +147,79 @@ public class VolleyballScraperService
                 ["ctl00$icerik$ddlsyarismaadi"] = "0",
             });
 
-        // Check if organization list is populated
-        var hasOrganizationId = leagueRaw.Contains($"value=\"{request.OrganizationId}\"");
+        // Check if organisation list is populated
+        var hasOrganisationId = leagueRaw.Contains($"value=\"{request.OrganisationId}\"");
         _logger.LogInformation(
-            "[{code}] After league POST, is organizationId={organizationId} in list: {result}",
-            league.Code, request.OrganizationId, hasOrganizationId);
+            "[{code}] After league POST, is organisationId={organisationId} in list: {result}",
+            league.Code, request.OrganisationId, hasOrganisationId);
 
         var newVsFromLeague = ExtractHiddenField(leagueRaw, "__VIEWSTATE");
         var newGenFromLeague = ExtractHiddenField(leagueRaw, "__VIEWSTATEGENERATOR");
         if (!string.IsNullOrEmpty(newVsFromLeague)) viewState = newVsFromLeague;
         if (!string.IsNullOrEmpty(newGenFromLeague)) viewStateGen = newGenFromLeague;
 
-        // Step 4: Organization → games
-        var gamesRaw = await PostStepRawAsync(
+        // Step 4: Organisation → first page of games
+        var baseFields = new Dictionary<string, string>
+        {
+            ["ctl00$icerik$ddlsezon"] = request.SeasonId,
+            ["ctl00$icerik$ddlsbe"] = request.Gender,
+            ["ctl00$icerik$ddlskategori"] = league.Category,
+            ["ctl00$icerik$ddlskume"] = league.Code,
+            ["ctl00$icerik$ddlsturu"] = "0",
+            ["ctl00$icerik$ddlsgrubu"] = "0",
+            ["ctl00$icerik$ddlskurumadi"] = request.OrganisationId,
+            ["ctl00$icerik$ddlstakim"] = "0",
+            ["ctl00$icerik$ddlsyarismaadi"] = "0",
+        };
+
+        var firstRaw = await PostStepRawAsync(
             client, cookie, viewState, viewStateGen,
             eventTarget: "ctl00$icerik$ddlskurumadi",
-            extraFields: new()
-            {
-                ["ctl00$icerik$ddlsezon"] = request.SeasonId,
-                ["ctl00$icerik$ddlsbe"] = request.Gender,
-                ["ctl00$icerik$ddlskategori"] = league.Category,
-                ["ctl00$icerik$ddlskume"] = league.Code,
-                ["ctl00$icerik$ddlsturu"] = "0",
-                ["ctl00$icerik$ddlsgrubu"] = "0",
-                ["ctl00$icerik$ddlskurumadi"] = request.OrganizationId,
-                ["ctl00$icerik$ddlstakim"] = "0",
-                ["ctl00$icerik$ddlsyarismaadi"] = "0",
-            });
+            extraFields: baseFields);
 
-        var recordCount = ExtractRecordCount(gamesRaw);
-        _logger.LogInformation(
-            "[{code}] Game POST completed. Record count: {count}",
-            league.Code, recordCount);
+        var recordCount = ExtractRecordCount(firstRaw);
+        _logger.LogInformation("[{code}] Record count: {count}", league.Code, recordCount);
 
-        var games = ParseGames(gamesRaw);
+        var firstHtml = ExtractUpdatePanelHtml(firstRaw);
+        var allGames = new List<Game>();
+        allGames.AddRange(ParseGamesFromHtml(firstHtml, league.DisplayName));
 
-        foreach (var m in games)
-            m.League = league.DisplayName;
+        // Fetch remaining pages
+        var pageNumbers = ExtractPageNumbers(firstHtml);
+        _logger.LogInformation("[{code}] Pages: {pages}, first page games: {count}",
+            league.Code, pageNumbers.Count, allGames.Count);
 
-        return games;
+        var pageViewState = ExtractHiddenField(firstRaw, "__VIEWSTATE");
+        var pageViewGen = ExtractHiddenField(firstRaw, "__VIEWSTATEGENERATOR");
+        if (!string.IsNullOrEmpty(pageViewState)) viewState = pageViewState;
+        if (!string.IsNullOrEmpty(pageViewGen)) viewStateGen = pageViewGen;
+
+        foreach (var pageNum in pageNumbers.Skip(1))
+        {
+            await Task.Delay(200);
+
+            var pageRaw = await PostStepRawAsync(
+                client, cookie, viewState, viewStateGen,
+                eventTarget: "ctl00$icerik$gvliste",
+                extraFields: new(baseFields)
+                {
+                    ["__EVENTARGUMENT"] = $"Page${pageNum}",
+                });
+
+            var pageHtml = ExtractUpdatePanelHtml(pageRaw);
+            var pageGames = ParseGamesFromHtml(pageHtml, league.DisplayName);
+            allGames.AddRange(pageGames);
+
+            _logger.LogInformation("[{code}] Page {page}: {count} games",
+                league.Code, pageNum, pageGames.Count);
+
+            var newVs = ExtractHiddenField(pageRaw, "__VIEWSTATE");
+            var newGen = ExtractHiddenField(pageRaw, "__VIEWSTATEGENERATOR");
+            if (!string.IsNullOrEmpty(newVs)) viewState = newVs;
+            if (!string.IsNullOrEmpty(newGen)) viewStateGen = newGen;
+        }
+
+        return allGames;
     }
 
     // Extract the red number from the "Record" field on the page
@@ -366,10 +395,6 @@ public class VolleyballScraperService
 
         return pages.OrderBy(p => p).ToList();
     }
-
-    // ParseGames is no longer used, redirect for backwards compatibility
-    private List<Game> ParseGames(string rawResponse) =>
-        ParseGamesFromHtml(ExtractUpdatePanelHtml(rawResponse), "");
 
     // ── Helpers ─────────────────────────────────────────────────────
 

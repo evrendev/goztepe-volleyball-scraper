@@ -51,7 +51,7 @@ public class VolleyballController : ControllerBase
     ///     }
     ///
     /// Leave `leagues` empty to fetch all supported leagues.
-    /// OrganizationId and Gender are fixed server-side (Göztepe / Women).
+    /// OrganisationId and Gender are fixed server-side (Göztepe / Women).
     /// </remarks>
     [HttpPost("games")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -59,7 +59,7 @@ public class VolleyballController : ControllerBase
         [FromBody] FixtureRequest request,
         [FromQuery] bool forceRefresh = false)
     {
-        request.OrganizationId = "662";
+        request.OrganisationId = "662";
         request.Gender = "B";
 
         var games = await _scraper.GetGamesAsync(request, forceRefresh);

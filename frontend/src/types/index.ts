@@ -20,7 +20,7 @@ export interface LeagueDefinition {
 export interface FixtureRequest {
   seasonId: string;
   leagues?: string[];
-  organizationId?: string;
+  organisationId?: string;
   gender?: string;
 }
 

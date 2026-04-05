@@ -36,7 +36,7 @@ builder.Services.AddHttpClient("VolleyballClient", client =>
         "https://izmir.voleyboliltemsilciligi.com/Fiksturler");
     client.DefaultRequestHeaders.Add("Accept", "*/*");
     client.BaseAddress = new Uri("https://izmir.voleyboliltemsilciligi.com/");
-    client.Timeout = TimeSpan.FromSeconds(20);
+    client.Timeout = TimeSpan.FromSeconds(60);
 });
 
 builder.Services.AddMemoryCache();
