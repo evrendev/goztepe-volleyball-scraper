@@ -13,7 +13,7 @@ public class VolleyballScraperService
         _logger = logger;
     }
 
-    public async Task<List<Game>> GetGameesAsync(FixtureRequest request)
+    public async Task<List<Game>> GetGamesAsync(FixtureRequest request)
     {
         // If no leagues selected, fetch all supported leagues
         var targetLeagues = request.Leagues.Count > 0
@@ -24,7 +24,7 @@ public class VolleyballScraperService
 
         // To avoid restarting session for each league,
         // get cookie + viewstate once, reuse for each league
-        var allGamees = new List<Game>();
+        var allGames = new List<Game>();
 
         foreach (var leagueCode in targetLeagues)
         {
@@ -39,9 +39,9 @@ public class VolleyballScraperService
 
             try
             {
-                var gamees = await FetchLeagueAsync(client, request, league);
-                allGamees.AddRange(gamees);
-                _logger.LogInformation("{code} → {count} gamees", leagueCode, gamees.Count);
+                var games = await FetchLeagueAsync(client, request, league);
+                allGames.AddRange(games);
+                _logger.LogInformation("{code} → {count} games", leagueCode, games.Count);
             }
             catch (Exception ex)
             {
@@ -53,7 +53,7 @@ public class VolleyballScraperService
         }
 
         // Sort by date
-        return allGamees
+        return allGames
             .OrderBy(m => ParseDate(m.Date))
             .ThenBy(m => m.Time)
             .ToList();
@@ -140,8 +140,8 @@ public class VolleyballScraperService
         if (!string.IsNullOrEmpty(newVsFromLeague)) viewState = newVsFromLeague;
         if (!string.IsNullOrEmpty(newGenFromLeague)) viewStateGen = newGenFromLeague;
 
-        // Step 4: Organization → gamees
-        var gameesRaw = await PostStepRawAsync(
+        // Step 4: Organization → games
+        var gamesRaw = await PostStepRawAsync(
             client, cookie, viewState, viewStateGen,
             eventTarget: "ctl00$icerik$ddlskurumadi",
             extraFields: new()
@@ -157,17 +157,17 @@ public class VolleyballScraperService
                 ["ctl00$icerik$ddlsyarismaadi"] = "0",
             });
 
-        var recordCount = ExtractRecordCount(gameesRaw);
+        var recordCount = ExtractRecordCount(gamesRaw);
         _logger.LogInformation(
             "[{code}] Game POST completed. Record count: {count}",
             league.Code, recordCount);
 
-        var gamees = ParseGamees(gameesRaw);
+        var games = ParseGames(gamesRaw);
 
-        foreach (var m in gamees)
+        foreach (var m in games)
             m.League = league.DisplayName;
 
-        return gamees;
+        return games;
     }
 
     // Extract the red number from the "Record" field on the page
@@ -270,18 +270,18 @@ public class VolleyballScraperService
 
     // ── Parse ───────────────────────────────────────────────────────
 
-    private List<Game> ParseGameesFromHtml(string html, string leagueDisplay)
+    private List<Game> ParseGamesFromHtml(string html, string leagueDisplay)
     {
-        var gamees = new List<Game>();
+        var games = new List<Game>();
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
         var table = doc.GetElementbyId("icerik_gvliste")
                     ?? doc.DocumentNode.SelectSingleNode("//table");
-        if (table == null) return gamees;
+        if (table == null) return games;
 
         var rows = table.SelectNodes(".//tr");
-        if (rows == null || rows.Count < 2) return gamees;
+        if (rows == null || rows.Count < 2) return games;
 
         foreach (var row in rows.Skip(1))
         {
@@ -299,7 +299,7 @@ public class VolleyballScraperService
             var scoreRaw = cols.Count > 5 ? Clean(cols[5].InnerText) : "";
             var score = (scoreRaw == "B" || scoreRaw == "E") ? "" : scoreRaw;
 
-            gamees.Add(new Game
+            games.Add(new Game
             {
                 Date = date,
                 Time = cols.Count > 1 ? Clean(cols[1].InnerText) : "",
@@ -313,7 +313,7 @@ public class VolleyballScraperService
             });
         }
 
-        return gamees;
+        return games;
     }
 
     // Extract page numbers — from pagination row
@@ -344,9 +344,9 @@ public class VolleyballScraperService
         return pages.OrderBy(p => p).ToList();
     }
 
-    // ParseGamees is no longer used, redirect for backwards compatibility
-    private List<Game> ParseGamees(string rawResponse) =>
-        ParseGameesFromHtml(ExtractUpdatePanelHtml(rawResponse), "");
+    // ParseGames is no longer used, redirect for backwards compatibility
+    private List<Game> ParseGames(string rawResponse) =>
+        ParseGamesFromHtml(ExtractUpdatePanelHtml(rawResponse), "");
 
     // ── Helpers ─────────────────────────────────────────────────────
 

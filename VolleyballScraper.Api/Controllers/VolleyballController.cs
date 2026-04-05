@@ -27,7 +27,7 @@ public class VolleyballController : ControllerBase
         request.OrganizationId = "662";
         request.Gender = "B";
 
-        var games = await _scraper.GetGameesAsync(request);
+        var games = await _scraper.GetGamesAsync(request);
 
         return Ok(new
         {
