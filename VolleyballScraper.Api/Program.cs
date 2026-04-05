@@ -27,6 +27,7 @@ builder.Services.AddHttpClient("VolleyballClient", client =>
 
 // Register our Scraper Service
 builder.Services.AddScoped<VolleyballScraperService>();
+builder.Services.AddSingleton<GameCacheService>();
 
 // Enable CORS (Since your Vue app will run on a different port)
 builder.Services.AddCors(options =>

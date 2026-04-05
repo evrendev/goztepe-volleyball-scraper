@@ -1,14 +1,12 @@
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.FileSystemGlobbing;
 using VolleyballScraper.Api.Models;
 
 namespace VolleyballScraper.Api.Services;
 
 public class GameCacheService
 {
-    private readonly GameCacheService _cache;
+    private readonly IMemoryCache _cache;
     private readonly ILogger<GameCacheService> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
 
     // Cache duration — fixtures rarely change
     private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(6);
@@ -17,11 +15,9 @@ public class GameCacheService
     private readonly HashSet<string> _trackedKeys = [];
     private readonly Lock _keyLock = new();
 
-    public GameCacheService(IHttpClientFactory httpClientFactory,
-        ILogger<GameCacheService> logger,
-        GameCacheService cache)
+    public GameCacheService(ILogger<GameCacheService> logger,
+        IMemoryCache cache)
     {
-        _httpClientFactory = httpClientFactory;
         _logger = logger;
         _cache = cache;
     }
@@ -58,7 +54,7 @@ public class GameCacheService
             _trackedKeys.Add(key);
 
         _logger.LogInformation("Cache SET: {key} → {count} matches, {dur} hours valid",
-            key, Matcher.Count, CacheDuration.TotalHours);
+            key, games.Count, CacheDuration.TotalHours);
     }
 
     public void Remove(string key)

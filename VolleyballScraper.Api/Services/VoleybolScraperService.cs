@@ -10,9 +10,10 @@ public class VolleyballScraperService
     private readonly GameCacheService _cache;
     private const string BaseUrl = "https://izmir.voleyboliltemsilciligi.com/Fiksturler";
 
-    public VolleyballScraperService(IHttpClientFactory httpClientFactory,
-                                   ILogger<VolleyballScraperService> logger,
-                                   GameCacheService cache)
+    public VolleyballScraperService(
+        IHttpClientFactory httpClientFactory,
+        ILogger<VolleyballScraperService> logger,
+        GameCacheService cache)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
@@ -22,7 +23,6 @@ public class VolleyballScraperService
     public async Task<List<Game>> GetGamesAsync(FixtureRequest request,
                                                 bool forceRefresh = false)
     {
-        // If no leagues selected, fetch all supported leagues
         var targetLeagues = request.Leagues.Count > 0
             ? request.Leagues
             : SupportedLeagues.All.Select(l => l.Code).Distinct().ToList();
@@ -35,15 +35,10 @@ public class VolleyballScraperService
         foreach (var leagueCode in targetLeagues)
         {
             var league = SupportedLeagues.Find(leagueCode);
-            if (league == null)
-            {
-                _logger.LogWarning("Unknown league code: {code}", leagueCode);
-                continue;
-            }
+            if (league == null) continue;
 
             var cacheKey = _cache.BuildKey(request.SeasonId, leagueCode);
 
-            // Cache check
             if (!forceRefresh && _cache.TryGet(cacheKey, out var cached))
             {
                 allGames.AddRange(cached);
@@ -52,18 +47,17 @@ public class VolleyballScraperService
             }
 
             cacheMisses++;
-            _logger.LogInformation("Fetching league: {code}", leagueCode);
+            _logger.LogInformation("Fetching from site: {code}", leagueCode);
 
             try
             {
                 var games = await FetchLeagueAsync(client, request, league);
                 _cache.Set(cacheKey, games);
                 allGames.AddRange(games);
-                _logger.LogInformation("{code} → {count} games", leagueCode, games.Count);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to fetch league: {code}", leagueCode);
+                _logger.LogError(ex, "Failed to fetch: {code}", leagueCode);
             }
 
             if (cacheMisses > 0)
@@ -71,18 +65,14 @@ public class VolleyballScraperService
         }
 
         _logger.LogInformation(
-            "Total: {total} games | Cache hit: {hits} | Scrape: {misses}",
+            "Total: {total} games | Cache hits: {hits} | Fetched: {misses}",
             allGames.Count, cacheHits, cacheMisses);
 
-        // Sort by date
         return allGames
             .OrderBy(m => ParseDate(m.Date))
             .ThenBy(m => m.Time)
             .ToList();
     }
-
-
-
     private async Task<List<Game>> FetchLeagueAsync(
         HttpClient client, FixtureRequest request, LeagueDefinition league)
     {
