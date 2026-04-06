@@ -30,4 +30,9 @@ public static class AppConstants
     /// Timeout duration in seconds for HTTP requests. Adjust based on network conditions and federation site responsiveness.
     /// </summary>
     public const int Timeout = 60;
+
+    /// <summary>
+    /// Base URL of the İzmir Volleyball Federation website. Used for constructing HTTP client and Referer header.
+    /// </summary>
+    public const string BaseUrl = "https://izmir.voleyboliltemsilciligi.com";
 }

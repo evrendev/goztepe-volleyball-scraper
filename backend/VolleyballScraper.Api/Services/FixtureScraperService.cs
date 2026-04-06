@@ -2,16 +2,16 @@ using HtmlAgilityPack;
 
 namespace VolleyballScraper.Api.Services;
 
-public class VolleyballScraperService
+public class FixtureScraperService
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger<VolleyballScraperService> _logger;
+    private readonly ILogger<FixtureScraperService> _logger;
     private readonly GameCacheService _cache;
-    private const string BaseUrl = "https://izmir.voleyboliltemsilciligi.com/Fiksturler";
+    private const string BaseUrl = $"{AppConstants.BaseUrl}/Fiksturler";
 
-    public VolleyballScraperService(
+    public FixtureScraperService(
         IHttpClientFactory httpClientFactory,
-        ILogger<VolleyballScraperService> logger,
+        ILogger<FixtureScraperService> logger,
         GameCacheService cache)
     {
         _httpClientFactory = httpClientFactory;

@@ -53,7 +53,7 @@ builder.Services.AddHttpClient("VolleyballClient", client =>
 
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<GameCacheService>();
-builder.Services.AddScoped<VolleyballScraperService>();
+builder.Services.AddScoped<FixtureScraperService>();
 
 builder.Services.AddCors(options =>
 {

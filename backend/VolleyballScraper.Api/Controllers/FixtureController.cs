@@ -10,10 +10,10 @@ namespace VolleyballScraper.Api.Controllers;
 [Produces("application/json")]
 public class FixtureController : ControllerBase
 {
-    private readonly VolleyballScraperService _scraper;
+    private readonly FixtureScraperService _scraper;
     private readonly GameCacheService _cache;
 
-    public FixtureController(VolleyballScraperService scraper, GameCacheService cache)
+    public FixtureController(FixtureScraperService scraper, GameCacheService cache)
     {
         _scraper = scraper;
         _cache = cache;
