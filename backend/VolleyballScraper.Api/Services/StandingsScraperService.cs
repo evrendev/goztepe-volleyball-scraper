@@ -7,7 +7,7 @@ public class StandingsScraperService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<StandingsScraperService> _logger;
 
-    private const string BaseUrl = "https://izmir.voleyboliltemsilciligi.com/PuanDurumu";
+    private const string BaseUrl = $"{AppConstants.BaseUrl}/PuanDurumu";
 
     public StandingsScraperService(
         IHttpClientFactory httpClientFactory,
