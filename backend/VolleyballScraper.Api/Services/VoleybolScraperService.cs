@@ -436,29 +436,63 @@ public class VolleyballScraperService
         var rows = table.SelectNodes(".//tr");
         if (rows == null || rows.Count < 2) return games;
 
+        // Carry-forward values for grouped rows
+        var lastDate = "";
+        var lastTime = "";
+        var lastVenue = "";
+
         foreach (var row in rows.Skip(1))
         {
-            // Understand pagination row from class
             if (row.GetAttributeValue("class", "").Contains("pagination")) continue;
 
             var cols = row.SelectNodes(".//td");
             if (cols == null || cols.Count < 6) continue;
 
-            var date = Clean(cols[0].InnerText);
-            if (!IsValidDate(date)) continue;
+            var rawDate = Clean(cols[0].InnerText);
+            var rawTime = cols.Count > 1 ? Clean(cols[1].InnerText) : "";
+            var rawVenue = cols.Count > 2 ? Clean(cols[2].InnerText) : "";
 
-            // Table columns (0-indexed):
-            // 0=Tarih, 1=Saat, 2=Salon, 3=EvSahibi, 4=Misafir, 5=C(B/E), 6=Küme, 7=Ktg, 8=Tür, 9=Gr, 10=Dv, 11=Tv, 12=Hft
+            // Use carry-forward if current row has no date
+            // but must have a valid away/home team to be a real row
+            var homeTeam = cols.Count > 3 ? Clean(cols[3].InnerText) : "";
+            var awayTeam = cols.Count > 4 ? Clean(cols[4].InnerText) : "";
+
+            if (string.IsNullOrWhiteSpace(homeTeam) && string.IsNullOrWhiteSpace(awayTeam))
+                continue;
+
+            string date, time, venue;
+
+            if (IsValidDate(rawDate))
+            {
+                // New date group — update carry-forward
+                date = rawDate;
+                time = rawTime;
+                venue = rawVenue;
+                lastDate = rawDate;
+                lastTime = rawTime;
+                lastVenue = rawVenue;
+            }
+            else
+            {
+                // Same date group — use carry-forward
+                date = lastDate;
+                time = string.IsNullOrWhiteSpace(rawTime) ? lastTime : rawTime;
+                venue = string.IsNullOrWhiteSpace(rawVenue) ? lastVenue : rawVenue;
+            }
+
+            // Skip if we still have no date at all
+            if (string.IsNullOrWhiteSpace(date)) continue;
+
             var scoreRaw = cols.Count > 5 ? Clean(cols[5].InnerText) : "";
             var score = (scoreRaw == "B" || scoreRaw == "E") ? "" : scoreRaw;
 
             games.Add(new Game
             {
                 Date = date,
-                Time = cols.Count > 1 ? Clean(cols[1].InnerText) : "",
-                Venue = cols.Count > 2 ? Clean(cols[2].InnerText) : "",
-                HomeTeam = cols.Count > 3 ? Clean(cols[3].InnerText) : "",
-                AwayTeam = cols.Count > 4 ? Clean(cols[4].InnerText) : "",
+                Time = time,
+                Venue = venue,
+                HomeTeam = homeTeam,
+                AwayTeam = awayTeam,
                 Score = score,
                 Division = cols.Count > 6 ? Clean(cols[6].InnerText) : "",
                 Category = cols.Count > 7 ? Clean(cols[7].InnerText) : "",
