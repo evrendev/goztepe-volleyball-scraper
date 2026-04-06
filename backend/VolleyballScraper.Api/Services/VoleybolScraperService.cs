@@ -20,9 +20,6 @@ public class VolleyballScraperService
         _cache = cache;
     }
 
-    // Max concurrent fetches to avoid hammering the external site
-    private static readonly SemaphoreSlim _fetchSemaphore = new(3, 3);
-
     public async Task<List<Game>> GetGamesAsync(FixtureRequest request,
                                                  bool forceRefresh = false)
     {
@@ -373,22 +370,48 @@ public class VolleyballScraperService
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
-        var pages = new List<int> { 1 }; // First page is always available
+        var pages = new List<int> { 1 };
 
         var paginationRow = doc.DocumentNode
             .SelectSingleNode("//tr[contains(@class,'pagination')]");
         if (paginationRow == null) return pages;
 
+        // Collect page numbers from all <a> tags with Page$ in href
         var links = paginationRow.SelectNodes(".//a");
         if (links != null)
         {
             foreach (var link in links)
             {
                 var href = link.GetAttributeValue("href", "");
-                var game = System.Text.RegularExpressions.Regex.Match(href, @"Page\$(\d+)");
-                if (game.Success && int.TryParse(game.Groups[1].Value, out var num))
+                var match = System.Text.RegularExpressions.Regex.Match(
+                    href, @"Page\$(\d+)");
+                if (match.Success && int.TryParse(match.Groups[1].Value, out var num))
                     if (!pages.Contains(num))
                         pages.Add(num);
+            }
+        }
+
+        // Also check <span> tags — the active page shows as <span>N</span>
+        // and "..." links point to the LAST page, extract from their href
+        var allLinks = paginationRow.SelectNodes(".//a");
+        if (allLinks != null)
+        {
+            // Find the "..." link — its Page$ value is the last page
+            var dotsLink = allLinks.LastOrDefault(a =>
+                a.InnerText.Trim() == "...");
+            if (dotsLink != null)
+            {
+                var href = dotsLink.GetAttributeValue("href", "");
+                var match = System.Text.RegularExpressions.Regex.Match(
+                    href, @"Page\$(\d+)");
+                if (match.Success && int.TryParse(match.Groups[1].Value, out var lastPage))
+                {
+                    // Fill in all missing pages between current max and lastPage
+                    var currentMax = pages.Count > 0 ? pages.Max() : 1;
+                    for (var i = currentMax + 1; i <= lastPage; i++)
+                        if (!pages.Contains(i))
+                            pages.Add(i);
+                }
             }
         }
 
@@ -396,13 +419,6 @@ public class VolleyballScraperService
     }
 
     // ── Helpers ─────────────────────────────────────────────────────
-
-    private static bool IsPaginationRow(string text) =>
-        // Real pagination: consecutive numbers like "12345678910..."
-        // Not dates like "18.09.2025" — check version without dots
-        !string.IsNullOrWhiteSpace(text) &&
-        !text.Contains('.') &&          // Dates contain dots, pagination rows don't
-        text.Replace(" ", "").All(char.IsDigit);
 
     private static bool IsValidDate(string text)
     {
