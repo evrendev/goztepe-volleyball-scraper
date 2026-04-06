@@ -64,7 +64,7 @@ public class StandingsScraperService
     }
 
     /// <summary>
-    /// Fetches the standings table and match results for a specific competition.
+    /// Fetches the standings table and game results for a specific competition.
     /// </summary>
     public async Task<StandingsResponse> GetStandingsAsync(StandingsRequest request)
     {
@@ -98,7 +98,7 @@ public class StandingsScraperService
             eventTarget: "ctl00$icerik$ddlskume",
             extraFields: BuildBaseFields(request.SeasonId, request.Category, request.LeagueCode));
 
-        // Step 5: Select competition → triggers standings + match list render
+        // Step 5: Select competition → triggers standings + game list render
         var rawValue = $"{request.CompetitionId}*{request.CompetitionKey}";
         var standingsRaw = await PostStepRawAsync(
             client, cookie, viewState, viewStateGen,
@@ -118,7 +118,7 @@ public class StandingsScraperService
         var hasGoztepe = standings.Any(r => r.IsGoztepe);
 
         _logger.LogInformation(
-            "[Standings] Competition {id}: {standingsCount} teams, {matchCount} matches, hasGöztepe={has}.",
+            "[Standings] Competition {id}: {standingsCount} teams, {gameCount} games, hasGöztepe={has}.",
             request.CompetitionId, standings.Count, games.Count, hasGoztepe);
 
         return new StandingsResponse
@@ -244,7 +244,7 @@ public class StandingsScraperService
     }
 
     /// <summary>
-    /// Parses the match result list shown below the standings table.
+    /// Parses the game result list shown below the standings table.
     /// Columns: S.No, Tarih, Saat, Salon Adı, Ev Sahibi (A), score, Misafir (B), Set Sonuçları
     /// </summary>
     private static List<GameResult> ParseGameResults(string html)
@@ -252,7 +252,7 @@ public class StandingsScraperService
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
-        // The match results table contains "Set Sonuçları" in its header
+        // The game results table contains "Set Sonuçları" in its header
         var table = doc.DocumentNode
             .SelectNodes("//table")
             ?.FirstOrDefault(t => t.InnerHtml.Contains("Set Sonuçları"));
@@ -432,7 +432,7 @@ public class StandingsScraperService
             ["ctl00$icerik$HfYTurid"] = "",  // populated dynamically by site JS
             ["ctl00$icerik$HfYGrupid"] = "",  // populated dynamically by site JS
             ["ctl00$icerik$HfYSiteid"] = AppConstants.ProvinceId,
-            ["ctl00$icerik$HfYTipid"] = "A", // A = standings + matches view
+            ["ctl00$icerik$HfYTipid"] = "A", // A = standings + games view
             ["ctl00$icerik$HfYMacTemplate"] = "1",
         };
 
