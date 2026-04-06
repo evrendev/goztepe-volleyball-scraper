@@ -107,14 +107,16 @@ public class StandingsScraperService
             eventTarget: "ctl00$icerik$ddlSkategori",
             extraFields: BuildBaseFields(request.SeasonId, request.Category, "0"));
 
-        // Step 4: Select league
-        (viewState, viewStateGen) = await PostStepAsync(
+        var step4Raw = await PostStepRawAsync(
             client, cookie, viewState, viewStateGen,
             eventTarget: "ctl00$icerik$ddlskume",
             extraFields: BuildBaseFields(request.SeasonId, request.Category, request.LeagueCode));
 
-        // Step 5: Select competition → triggers standings + game list render
-        var rawValue = $"{request.CompetitionId}*{request.CompetitionKey}";
+        // Extract competition name from dropdown before proceeding
+        var competitionName = ExtractCompetitionName(step4Raw, request.CompetitionId);
+        (viewState, viewStateGen) = ExtractViewState(step4Raw, viewState, viewStateGen);
+
+        // Step 5: Select competition
         var standingsRaw = await PostStepRawAsync(
             client, cookie, viewState, viewStateGen,
             eventTarget: "ctl00$icerik$GvTemplate_1$ctl04$lnkSubmit",
@@ -139,7 +141,7 @@ public class StandingsScraperService
         var response = new StandingsResponse
         {
             CompetitionId = request.CompetitionId,
-            CompetitionName = "", // populated by controller from competition list
+            CompetitionName = competitionName,
             SeasonId = request.SeasonId,
             HasGoztepe = hasGoztepe,
             Standings = standings,
@@ -221,10 +223,22 @@ public class StandingsScraperService
 
             var teamName = Clean(teamLink.InnerText);
 
+            // Logo img element id: icerik_GvTemplate_1_imgFoto_{index}
+            var logoNode = doc.GetElementbyId($"icerik_GvTemplate_1_imgFoto_{rowIndex}");
+            var logoSrc = logoNode?.GetAttributeValue("src", "") ?? "";
+
+            // Strip cache-busting query string and build absolute URL
+            if (!string.IsNullOrWhiteSpace(logoSrc))
+            {
+                var cleanSrc = logoSrc.Split('?')[0];
+                logoSrc = $"https://izmir.voleyboliltemsilciligi.com/{cleanSrc.TrimStart('/')}";
+            }
+
             standings.Add(new StandingsRow
             {
                 Rank = rowIndex + 1,
                 TeamName = teamName,
+                LogoUrl = logoSrc,
                 Played = GetSpanInt(doc, $"icerik_GvTemplate_1_gO_{rowIndex}"),
                 Won = GetSpanInt(doc, $"icerik_GvTemplate_1_gG_{rowIndex}"),
                 Lost = GetSpanInt(doc, $"icerik_GvTemplate_1_gM_{rowIndex}"),
@@ -489,5 +503,44 @@ public class StandingsScraperService
     {
         var text = GetSpanText(doc, spanId);
         return int.TryParse(text.Replace(".", "").Replace(",", ""), out var val) ? val : 0;
+    }
+
+    /// <summary>
+    /// Extracts the competition display name from the yarışma adı dropdown
+    /// by matching the option value that starts with the given competition ID.
+    /// </summary>
+    private static string ExtractCompetitionName(string rawResponse, string competitionId)
+    {
+        var html = ExtractUpdatePanelHtml(rawResponse);
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+
+        var select = doc.DocumentNode
+            .SelectSingleNode("//select[@id='icerik_ddlSyarismaadi']");
+
+        if (select == null) return "";
+
+        var option = select
+            .SelectNodes(".//option")
+            ?.FirstOrDefault(o =>
+                o.GetAttributeValue("value", "").StartsWith($"{competitionId}*"));
+
+        return option == null ? "" : Clean(option.InnerText);
+    }
+
+    /// <summary>
+    /// Extracts updated VIEWSTATE values from a delta response,
+    /// falling back to the previous values if not present.
+    /// </summary>
+    private static (string viewState, string viewStateGen) ExtractViewState(
+        string raw, string currentViewState, string currentViewStateGen)
+    {
+        var newVs = ExtractHiddenField(raw, "__VIEWSTATE");
+        var newGen = ExtractHiddenField(raw, "__VIEWSTATEGENERATOR");
+
+        return (
+            string.IsNullOrEmpty(newVs) ? currentViewState : newVs,
+            string.IsNullOrEmpty(newGen) ? currentViewStateGen : newGen
+        );
     }
 }

@@ -14,6 +14,13 @@ public class StandingsRow
     /// <example>Göztepe</example>
     public string TeamName { get; set; } = "";
 
+    /// <summary>
+    /// Absolute URL of the team's logo image hosted on the federation site.
+    /// Empty string if no logo is available.
+    /// </summary>
+    /// <example>https://izmir.voleyboliltemsilciligi.com/Uploads/KulupKurum/Logo/2173.png</example>
+    public string LogoUrl { get; set; } = "";
+
     /// <summary>Number of matches played (O — Oynadığı).</summary>
     /// <example>2</example>
     public int Played { get; set; }
