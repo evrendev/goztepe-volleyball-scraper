@@ -25,9 +25,9 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Göztepe Volleyball Fixture API",
+        Title = "Göztepe Volleyball API",
         Version = "v1",
-        Description = "Fetches Göztepe Sports Club volleyball fixture data " +
+        Description = "Fetches Göztepe Sports Club volleyball data " +
                       "from İzmir Voleybol İl Temsilciliği.",
         Contact = new OpenApiContact
         {
