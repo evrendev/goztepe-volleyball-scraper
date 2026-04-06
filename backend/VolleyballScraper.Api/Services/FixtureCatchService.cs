@@ -2,19 +2,19 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace VolleyballScraper.Api.Services;
 
-public class GameCacheService
+public class FixtureCacheService
 {
     private readonly IMemoryCache _cache;
-    private readonly ILogger<GameCacheService> _logger;
+    private readonly ILogger<FixtureCacheService> _logger;
 
     // Cache duration — fixtures rarely change
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(AppConstants.CacheDuration);
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(AppConstants.FixtureCacheDuration);
 
     // Track which keys are in cache (for cleanup)
     private readonly HashSet<string> _trackedKeys = [];
     private readonly Lock _keyLock = new();
 
-    public GameCacheService(ILogger<GameCacheService> logger,
+    public FixtureCacheService(ILogger<FixtureCacheService> logger,
         IMemoryCache cache)
     {
         _logger = logger;

@@ -6,15 +6,17 @@ public class StandingsScraperService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<StandingsScraperService> _logger;
-
+    private readonly StandingsCacheService _cache;
     private const string BaseUrl = $"{AppConstants.BaseUrl}/PuanDurumu";
 
     public StandingsScraperService(
         IHttpClientFactory httpClientFactory,
-        ILogger<StandingsScraperService> logger)
+        ILogger<StandingsScraperService> logger,
+        StandingsCacheService cache)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
+        _cache = cache;
     }
 
     // ── Public API ───────────────────────────────────────────────────────────
@@ -25,7 +27,13 @@ public class StandingsScraperService
     /// </summary>
     public async Task<List<Competition>> GetCompetitionsAsync(CompetitionRequest request)
     {
-        var client = _httpClientFactory.CreateClient("VolleyballClient");
+        var cacheKey = _cache.BuildCompetitionsKey(
+            request.SeasonId, request.Category, request.LeagueCode);
+
+        if (_cache.TryGetCompetitions(cacheKey, out var cached))
+            return cached;
+
+        var client = _httpClientFactory.CreateClient("StandingsClient");
 
         var (viewState, viewStateGen, cookie) = await GetViewStateAsync(client);
         _logger.LogInformation("[Standings] VIEWSTATE retrieved for competitions.");
@@ -60,6 +68,7 @@ public class StandingsScraperService
             "[Standings] Found {count} competitions for {league}.",
             competitions.Count, request.LeagueCode);
 
+        _cache.SetCompetitions(cacheKey, competitions);
         return competitions;
     }
 
@@ -68,7 +77,13 @@ public class StandingsScraperService
     /// </summary>
     public async Task<StandingsResponse> GetStandingsAsync(StandingsRequest request)
     {
-        var client = _httpClientFactory.CreateClient("VolleyballClient");
+        var cacheKey = _cache.BuildStandingsKey(
+            request.SeasonId, request.CompetitionId);
+
+        if (_cache.TryGetStandings(cacheKey, out var cached))
+            return cached;
+
+        var client = _httpClientFactory.CreateClient("StandingsClient");
 
         var (viewState, viewStateGen, cookie) = await GetViewStateAsync(client);
         _logger.LogInformation(
@@ -121,7 +136,7 @@ public class StandingsScraperService
             "[Standings] Competition {id}: {standingsCount} teams, {gameCount} games, hasGöztepe={has}.",
             request.CompetitionId, standings.Count, games.Count, hasGoztepe);
 
-        return new StandingsResponse
+        var response = new StandingsResponse
         {
             CompetitionId = request.CompetitionId,
             CompetitionName = "", // populated by controller from competition list
@@ -130,6 +145,9 @@ public class StandingsScraperService
             Standings = standings,
             Games = games,
         };
+
+        _cache.SetStandings(cacheKey, response);
+        return response;
     }
 
     // ── Parse ────────────────────────────────────────────────────────────────

@@ -6,13 +6,13 @@ public class FixtureScraperService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<FixtureScraperService> _logger;
-    private readonly GameCacheService _cache;
+    private readonly FixtureCacheService _cache;
     private const string BaseUrl = $"{AppConstants.BaseUrl}/Fiksturler";
 
     public FixtureScraperService(
         IHttpClientFactory httpClientFactory,
         ILogger<FixtureScraperService> logger,
-        GameCacheService cache)
+        FixtureCacheService cache)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
@@ -24,7 +24,7 @@ public class FixtureScraperService
         var league = SupportedLeagues.Find(leagueCode)
                      ?? throw new ArgumentException($"Unknown league: {leagueCode}");
 
-        var client = _httpClientFactory.CreateClient("VolleyballClient");
+        var client = _httpClientFactory.CreateClient("FixtureClient");
         var (viewState, viewStateGen, cookie) = await GetViewStateAsync(client);
 
         var sb = new System.Text.StringBuilder();
@@ -159,7 +159,7 @@ public class FixtureScraperService
 
             try
             {
-                var client = _httpClientFactory.CreateClient("VolleyballClient");
+                var client = _httpClientFactory.CreateClient("FixtureClient");
                 var games = await FetchLeagueAsync(client, request, league);
                 _cache.Set(cacheKey, games);
                 allGames.AddRange(games);

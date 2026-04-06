@@ -12,9 +12,13 @@ namespace VolleyballScraper.Api.Controllers;
 public class StandingsController : ControllerBase
 {
     private readonly StandingsScraperService _scraper;
+    private readonly StandingsCacheService _cache;
 
-    public StandingsController(StandingsScraperService scraper)
-        => _scraper = scraper;
+    public StandingsController(StandingsScraperService scraper, StandingsCacheService cache)
+    {
+        _scraper = scraper;
+        _cache = cache;
+    }
 
     /// <summary>
     /// Returns all competitions (yarışma adları) for the given season, category and league.
@@ -204,6 +208,30 @@ public class StandingsController : ControllerBase
             category,
             total = allCompetitions.Count,
             competitions = allCompetitions,
+        });
+    }
+
+
+    /// <summary>Returns current standings cache status.</summary>
+    [HttpGet("cache/status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetCacheStatus() =>
+        Ok(new
+        {
+            totalCachedKeys = _cache.GetCachedKeys().Count,
+            keys = _cache.GetCachedKeys()
+        });
+
+    /// <summary>Clears standings cache for a specific season or all.</summary>
+    [HttpDelete("cache")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult ClearCache([FromQuery] string? seasonId = null)
+    {
+        _cache.Clear(seasonId);
+        return Ok(new
+        {
+            message = seasonId == null ? "All standings cache cleared" : $"Cache cleared for season {seasonId}",
+            seasonId
         });
     }
 }

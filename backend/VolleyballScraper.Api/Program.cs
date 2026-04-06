@@ -40,20 +40,32 @@ builder.Services.AddSwaggerGen(options =>
         options.IncludeXmlComments(xmlPath);
 });
 
-builder.Services.AddHttpClient("VolleyballClient", client =>
+builder.Services.AddHttpClient("FixtureClient", client =>
 {
     client.DefaultRequestHeaders.Add("User-Agent",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
     client.DefaultRequestHeaders.Add("Referer",
-        "https://izmir.voleyboliltemsilciligi.com/Fiksturler");
+        $"{AppConstants.BaseUrl}/Fiksturler");
     client.DefaultRequestHeaders.Add("Accept", "*/*");
-    client.BaseAddress = new Uri("https://izmir.voleyboliltemsilciligi.com/");
+    client.BaseAddress = new Uri(AppConstants.BaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(AppConstants.Timeout);
+});
+
+builder.Services.AddHttpClient("StandingsClient", client =>
+{
+    client.DefaultRequestHeaders.Add("User-Agent",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+    client.DefaultRequestHeaders.Add("Referer",
+        $"{AppConstants.BaseUrl}/PuanDurumu");
+    client.DefaultRequestHeaders.Add("Accept", "*/*");
+    client.BaseAddress = new Uri(AppConstants.BaseUrl);
     client.Timeout = TimeSpan.FromSeconds(AppConstants.Timeout);
 });
 
 builder.Services.AddMemoryCache();
-builder.Services.AddSingleton<GameCacheService>();
+builder.Services.AddSingleton<FixtureCacheService>();
 builder.Services.AddScoped<FixtureScraperService>();
+builder.Services.AddSingleton<StandingsCacheService>();
 builder.Services.AddScoped<StandingsScraperService>();
 
 builder.Services.AddCors(options =>

@@ -11,9 +11,9 @@ namespace VolleyballScraper.Api.Controllers;
 public class FixtureController : ControllerBase
 {
     private readonly FixtureScraperService _scraper;
-    private readonly GameCacheService _cache;
+    private readonly FixtureCacheService _cache;
 
-    public FixtureController(FixtureScraperService scraper, GameCacheService cache)
+    public FixtureController(FixtureScraperService scraper, FixtureCacheService cache)
     {
         _scraper = scraper;
         _cache = cache;

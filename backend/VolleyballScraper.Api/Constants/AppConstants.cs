@@ -24,7 +24,13 @@ public static class AppConstants
     /// <summary>
     /// Cache duration in hours for fixture data. Adjust based on how often the federation site updates.
     /// </summary>
-    public const int CacheDuration = 24;
+    public const int FixtureCacheDuration = 24;
+
+    /// <summary>
+    /// Cache duration in hours for standings data. Longer duration since standings change less frequently.
+    /// Adjust based on how often the federation site updates standings.
+    /// </summary>
+    public const int StandingsCacheDuration = 720; // 30 days
 
     /// <summary>
     /// Timeout duration in seconds for HTTP requests. Adjust based on network conditions and federation site responsiveness.
