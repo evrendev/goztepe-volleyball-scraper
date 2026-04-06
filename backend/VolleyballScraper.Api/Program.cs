@@ -1,5 +1,6 @@
 using VolleyballScraper.Api.Services;
 using Microsoft.OpenApi;
+using VolleyballScraper.Api.Constants;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,7 +37,7 @@ builder.Services.AddHttpClient("VolleyballClient", client =>
         "https://izmir.voleyboliltemsilciligi.com/Fiksturler");
     client.DefaultRequestHeaders.Add("Accept", "*/*");
     client.BaseAddress = new Uri("https://izmir.voleyboliltemsilciligi.com/");
-    client.Timeout = TimeSpan.FromSeconds(60);
+    client.Timeout = TimeSpan.FromSeconds(AppConstants.Timeout);
 });
 
 builder.Services.AddMemoryCache();

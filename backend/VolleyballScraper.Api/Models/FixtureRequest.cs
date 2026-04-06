@@ -1,3 +1,5 @@
+using VolleyballScraper.Api.Constants;
+
 namespace VolleyballScraper.Api.Models;
 
 /// <summary>Request body for fetching fixture data.</summary>
@@ -5,11 +7,11 @@ public class FixtureRequest
 {
     /// <summary>Season identifier.</summary>
     /// <example>2025-2026</example>
-    public string SeasonId { get; set; } = "2025-2026";
+    public string SeasonId { get; set; } = AppConstants.SeasonId;
 
     // Fixed server-side — cannot be overridden
-    public string OrganisationId { get; set; } = "662";
-    public string Gender { get; set; } = "B";
+    public string OrganisationId { get; set; } = AppConstants.OrganisationId;
+    public string Gender { get; set; } = AppConstants.Gender;
 
     /// <summary>
     /// League codes to fetch. Leave empty for all leagues.

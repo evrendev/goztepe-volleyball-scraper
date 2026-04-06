@@ -62,9 +62,6 @@ public class VolleyballController : ControllerBase
         [FromBody] FixtureRequest request,
         [FromQuery] bool forceRefresh = false)
     {
-        request.OrganisationId = "662";
-        request.Gender = "B";
-
         var games = await _scraper.GetGamesAsync(request, forceRefresh);
 
         // Apply optional filters

@@ -1,4 +1,5 @@
 using HtmlAgilityPack;
+using VolleyballScraper.Api.Constants;
 using VolleyballScraper.Api.Models;
 
 namespace VolleyballScraper.Api.Services;
@@ -38,7 +39,7 @@ public class VolleyballScraperService
             extraFields: new()
             {
                 ["ctl00$icerik$ddlsezon"] = seasonId,
-                ["ctl00$icerik$ddlsbe"] = "B",
+                ["ctl00$icerik$ddlsbe"] = AppConstants.Gender,
                 ["ctl00$icerik$ddlskategori"] = "0",
                 ["ctl00$icerik$ddlskume"] = "0",
                 ["ctl00$icerik$ddlsturu"] = "0",
@@ -62,7 +63,7 @@ public class VolleyballScraperService
             extraFields: new()
             {
                 ["ctl00$icerik$ddlsezon"] = seasonId,
-                ["ctl00$icerik$ddlsbe"] = "B",
+                ["ctl00$icerik$ddlsbe"] = AppConstants.Gender,
                 ["ctl00$icerik$ddlskategori"] = league.Category,
                 ["ctl00$icerik$ddlskume"] = "0",
                 ["ctl00$icerik$ddlsturu"] = "0",
@@ -87,7 +88,7 @@ public class VolleyballScraperService
             extraFields: new()
             {
                 ["ctl00$icerik$ddlsezon"] = seasonId,
-                ["ctl00$icerik$ddlsbe"] = "B",
+                ["ctl00$icerik$ddlsbe"] = AppConstants.Gender,
                 ["ctl00$icerik$ddlskategori"] = league.Category,
                 ["ctl00$icerik$ddlskume"] = leagueCode,
                 ["ctl00$icerik$ddlsturu"] = "0",
@@ -103,7 +104,7 @@ public class VolleyballScraperService
         if (!string.IsNullOrEmpty(newGen3)) viewStateGen = newGen3;
 
         sb.AppendLine($"\n=== STEP3 (League={leagueCode}) - length: {step3.Length} ===");
-        sb.AppendLine($"Contains org 662: {step3.Contains("value=\"662\"")}");
+        sb.AppendLine($"Contains org {AppConstants.OrganisationId}: {step3.Contains($"value=\"{AppConstants.OrganisationId}\"")}");
         sb.AppendLine(step3[..Math.Min(800, step3.Length)]);
 
         // Step 4: Organization
@@ -112,17 +113,17 @@ public class VolleyballScraperService
             extraFields: new()
             {
                 ["ctl00$icerik$ddlsezon"] = seasonId,
-                ["ctl00$icerik$ddlsbe"] = "B",
+                ["ctl00$icerik$ddlsbe"] = AppConstants.Gender,
                 ["ctl00$icerik$ddlskategori"] = league.Category,
                 ["ctl00$icerik$ddlskume"] = leagueCode,
                 ["ctl00$icerik$ddlsturu"] = "0",
                 ["ctl00$icerik$ddlsgrubu"] = "0",
-                ["ctl00$icerik$ddlskurumadi"] = "662",
+                ["ctl00$icerik$ddlskurumadi"] = AppConstants.OrganisationId,
                 ["ctl00$icerik$ddlstakim"] = "0",
                 ["ctl00$icerik$ddlsyarismaadi"] = "0",
             });
 
-        sb.AppendLine($"\n=== STEP4 (Org=662) - length: {step4.Length} ===");
+        sb.AppendLine($"\n=== STEP4 (Org={AppConstants.OrganisationId}) - length: {step4.Length} ===");
         sb.AppendLine($"Record count: {ExtractRecordCount(step4)}");
         sb.AppendLine(step4[..Math.Min(1500, step4.Length)]);
 
@@ -322,8 +323,8 @@ public class VolleyballScraperService
 
         return allGames
         .Where(g =>
-            g.HomeTeam.Contains("Göztepe", StringComparison.OrdinalIgnoreCase) ||
-            g.AwayTeam.Contains("Göztepe", StringComparison.OrdinalIgnoreCase))
+            g.HomeTeam.Contains(AppConstants.ClubName, StringComparison.OrdinalIgnoreCase) ||
+            g.AwayTeam.Contains(AppConstants.ClubName, StringComparison.OrdinalIgnoreCase))
         .GroupBy(g => $"{g.Date}|{g.HomeTeam.Trim()}|{g.AwayTeam.Trim()}|{g.Division}|{g.MatchType}|{g.Week}")
         .Select(g => g.First())
         .ToList();
@@ -369,13 +370,13 @@ public class VolleyballScraperService
             ["ctl00$icerik$txtmemberuser"] = "",
             ["ctl00$icerik$txtkayitid"] = "",
             ["ctl00$icerik$txtpageno"] = "",
-            ["ctl00$icerik$txtilid"] = "35",
+            ["ctl00$icerik$txtilid"] = AppConstants.ProvinceId,
             ["ctl00$icerik$txtyetkiseviyesi"] = "",
             ["ctl00$icerik$txtgun"] = "",
             ["ctl00$icerik$txtmacide"] = "",
             ["ctl00$icerik$txtyil"] = "",
             ["ctl00$icerik$pageno"] = "",
-            ["ctl00$icerik$ddlSil"] = "35",
+            ["ctl00$icerik$ddlSil"] = AppConstants.ProvinceId,
             ["ctl00$icerik$txttarih"] = "",
             ["ctl00$icerik$txtbitistrh"] = "",
             ["__LASTFOCUS"] = "",
@@ -489,7 +490,7 @@ public class VolleyballScraperService
             if (string.IsNullOrWhiteSpace(date)) continue;
 
             var scoreRaw = cols.Count > 5 ? Clean(cols[5].InnerText) : "";
-            var score = (scoreRaw == "B" || scoreRaw == "E") ? "" : scoreRaw;
+            var score = (scoreRaw == AppConstants.Gender || scoreRaw == "E") ? "" : scoreRaw;
 
             games.Add(new Game
             {

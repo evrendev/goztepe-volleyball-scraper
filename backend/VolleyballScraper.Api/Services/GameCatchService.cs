@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using VolleyballScraper.Api.Constants;
 using VolleyballScraper.Api.Models;
 
 namespace VolleyballScraper.Api.Services;
@@ -9,7 +10,7 @@ public class GameCacheService
     private readonly ILogger<GameCacheService> _logger;
 
     // Cache duration — fixtures rarely change
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(6);
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(AppConstants.CacheDuration);
 
     // Track which keys are in cache (for cleanup)
     private readonly HashSet<string> _trackedKeys = [];
