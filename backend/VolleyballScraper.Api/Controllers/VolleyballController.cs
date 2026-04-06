@@ -153,4 +153,14 @@ public class VolleyballController : ControllerBase
             seasonId
         });
     }
+
+    /// <summary>
+    /// Debug: returns raw response from site for a single league step.
+    /// </summary>
+    [HttpPost("debug/raw")]
+    public async Task<IActionResult> GetRawResponse([FromBody] DebugRequest request)
+    {
+        var raw = await _scraper.GetRawAsync(request.SeasonId, request.LeagueCode);
+        return Content(raw, "text/plain");
+    }
 }

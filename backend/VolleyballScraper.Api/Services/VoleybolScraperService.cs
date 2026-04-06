@@ -20,6 +20,115 @@ public class VolleyballScraperService
         _cache = cache;
     }
 
+    public async Task<string> GetRawAsync(string seasonId, string leagueCode)
+    {
+        var league = SupportedLeagues.Find(leagueCode)
+                     ?? throw new ArgumentException($"Unknown league: {leagueCode}");
+
+        var client = _httpClientFactory.CreateClient("VolleyballClient");
+        var (viewState, viewStateGen, cookie) = await GetViewStateAsync(client);
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"=== VIEWSTATE length: {viewState.Length} ===");
+        sb.AppendLine($"=== Cookie: {cookie} ===");
+
+        // Step 1: Season
+        var step1 = await PostStepRawAsync(client, cookie, viewState, viewStateGen,
+            eventTarget: "ctl00$icerik$ddlsezon",
+            extraFields: new()
+            {
+                ["ctl00$icerik$ddlsezon"] = seasonId,
+                ["ctl00$icerik$ddlsbe"] = "B",
+                ["ctl00$icerik$ddlskategori"] = "0",
+                ["ctl00$icerik$ddlskume"] = "0",
+                ["ctl00$icerik$ddlsturu"] = "0",
+                ["ctl00$icerik$ddlsgrubu"] = "0",
+                ["ctl00$icerik$ddlskurumadi"] = "0",
+                ["ctl00$icerik$ddlstakim"] = "0",
+                ["ctl00$icerik$ddlsyarismaadi"] = "0",
+            });
+
+        var newVs1 = ExtractHiddenField(step1, "__VIEWSTATE");
+        var newGen1 = ExtractHiddenField(step1, "__VIEWSTATEGENERATOR");
+        if (!string.IsNullOrEmpty(newVs1)) viewState = newVs1;
+        if (!string.IsNullOrEmpty(newGen1)) viewStateGen = newGen1;
+
+        sb.AppendLine($"\n=== STEP1 (Season) - length: {step1.Length} ===");
+        sb.AppendLine(step1[..Math.Min(800, step1.Length)]);
+
+        // Step 2: Category
+        var step2 = await PostStepRawAsync(client, cookie, viewState, viewStateGen,
+            eventTarget: "ctl00$icerik$ddlskategori",
+            extraFields: new()
+            {
+                ["ctl00$icerik$ddlsezon"] = seasonId,
+                ["ctl00$icerik$ddlsbe"] = "B",
+                ["ctl00$icerik$ddlskategori"] = league.Category,
+                ["ctl00$icerik$ddlskume"] = "0",
+                ["ctl00$icerik$ddlsturu"] = "0",
+                ["ctl00$icerik$ddlsgrubu"] = "0",
+                ["ctl00$icerik$ddlskurumadi"] = "0",
+                ["ctl00$icerik$ddlstakim"] = "0",
+                ["ctl00$icerik$ddlsyarismaadi"] = "0",
+            });
+
+        var newVs2 = ExtractHiddenField(step2, "__VIEWSTATE");
+        var newGen2 = ExtractHiddenField(step2, "__VIEWSTATEGENERATOR");
+        if (!string.IsNullOrEmpty(newVs2)) viewState = newVs2;
+        if (!string.IsNullOrEmpty(newGen2)) viewStateGen = newGen2;
+
+        sb.AppendLine($"\n=== STEP2 (Category={league.Category}) - length: {step2.Length} ===");
+        sb.AppendLine($"Contains {leagueCode}: {step2.Contains(leagueCode)}");
+        sb.AppendLine(step2[..Math.Min(800, step2.Length)]);
+
+        // Step 3: League/Kume
+        var step3 = await PostStepRawAsync(client, cookie, viewState, viewStateGen,
+            eventTarget: "ctl00$icerik$ddlskume",
+            extraFields: new()
+            {
+                ["ctl00$icerik$ddlsezon"] = seasonId,
+                ["ctl00$icerik$ddlsbe"] = "B",
+                ["ctl00$icerik$ddlskategori"] = league.Category,
+                ["ctl00$icerik$ddlskume"] = leagueCode,
+                ["ctl00$icerik$ddlsturu"] = "0",
+                ["ctl00$icerik$ddlsgrubu"] = "0",
+                ["ctl00$icerik$ddlskurumadi"] = "0",
+                ["ctl00$icerik$ddlstakim"] = "0",
+                ["ctl00$icerik$ddlsyarismaadi"] = "0",
+            });
+
+        var newVs3 = ExtractHiddenField(step3, "__VIEWSTATE");
+        var newGen3 = ExtractHiddenField(step3, "__VIEWSTATEGENERATOR");
+        if (!string.IsNullOrEmpty(newVs3)) viewState = newVs3;
+        if (!string.IsNullOrEmpty(newGen3)) viewStateGen = newGen3;
+
+        sb.AppendLine($"\n=== STEP3 (League={leagueCode}) - length: {step3.Length} ===");
+        sb.AppendLine($"Contains org 662: {step3.Contains("value=\"662\"")}");
+        sb.AppendLine(step3[..Math.Min(800, step3.Length)]);
+
+        // Step 4: Organization
+        var step4 = await PostStepRawAsync(client, cookie, viewState, viewStateGen,
+            eventTarget: "ctl00$icerik$ddlskurumadi",
+            extraFields: new()
+            {
+                ["ctl00$icerik$ddlsezon"] = seasonId,
+                ["ctl00$icerik$ddlsbe"] = "B",
+                ["ctl00$icerik$ddlskategori"] = league.Category,
+                ["ctl00$icerik$ddlskume"] = leagueCode,
+                ["ctl00$icerik$ddlsturu"] = "0",
+                ["ctl00$icerik$ddlsgrubu"] = "0",
+                ["ctl00$icerik$ddlskurumadi"] = "662",
+                ["ctl00$icerik$ddlstakim"] = "0",
+                ["ctl00$icerik$ddlsyarismaadi"] = "0",
+            });
+
+        sb.AppendLine($"\n=== STEP4 (Org=662) - length: {step4.Length} ===");
+        sb.AppendLine($"Record count: {ExtractRecordCount(step4)}");
+        sb.AppendLine(step4[..Math.Min(1500, step4.Length)]);
+
+        return sb.ToString();
+    }
+
     public async Task<List<Game>> GetGamesAsync(FixtureRequest request,
                                                  bool forceRefresh = false)
     {
@@ -177,8 +286,8 @@ public class VolleyballScraperService
         allGames.AddRange(ParseGamesFromHtml(firstHtml, league.DisplayName));
 
         var pageNumbers = ExtractPageNumbers(firstHtml);
-        _logger.LogInformation("[{code}] Pages found: {pages}, page 1 games: {count}",
-            league.Code, pageNumbers.Count, allGames.Count);
+        _logger.LogInformation("[{code}] Page numbers found: {pages}",
+            league.Code, string.Join(", ", pageNumbers));
 
         // Update viewstate from first response
         var pageVs = ExtractHiddenField(firstRaw, "__VIEWSTATE");
@@ -364,58 +473,49 @@ public class VolleyballScraperService
         return games;
     }
 
-    // Extract page numbers — from pagination row
     private static List<int> ExtractPageNumbers(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
-        var pages = new List<int> { 1 };
+        var pages = new HashSet<int> { 1 }; // HashSet — no duplicates
 
         var paginationRow = doc.DocumentNode
             .SelectSingleNode("//tr[contains(@class,'pagination')]");
-        if (paginationRow == null) return pages;
+        if (paginationRow == null) return [1];
 
-        // Collect page numbers from all <a> tags with Page$ in href
+        // Collect all <a> hrefs with Page$N
         var links = paginationRow.SelectNodes(".//a");
         if (links != null)
         {
             foreach (var link in links)
             {
                 var href = link.GetAttributeValue("href", "");
-                var match = System.Text.RegularExpressions.Regex.Match(
-                    href, @"Page\$(\d+)");
-                if (match.Success && int.TryParse(match.Groups[1].Value, out var num))
-                    if (!pages.Contains(num))
-                        pages.Add(num);
+                var m = System.Text.RegularExpressions.Regex.Match(href, @"Page\$(\d+)");
+                if (m.Success && int.TryParse(m.Groups[1].Value, out var num))
+                    pages.Add(num);
             }
         }
 
-        // Also check <span> tags — the active page shows as <span>N</span>
-        // and "..." links point to the LAST page, extract from their href
-        var allLinks = paginationRow.SelectNodes(".//a");
-        if (allLinks != null)
+        // Find "..." link → it targets the LAST visible page in pagination,
+        // not necessarily the absolute last page. Fill in the gap.
+        if (links != null)
         {
-            // Find the "..." link — its Page$ value is the last page
-            var dotsLink = allLinks.LastOrDefault(a =>
-                a.InnerText.Trim() == "...");
+            var dotsLink = links.LastOrDefault(a => a.InnerText.Trim() == "...");
             if (dotsLink != null)
             {
                 var href = dotsLink.GetAttributeValue("href", "");
-                var match = System.Text.RegularExpressions.Regex.Match(
-                    href, @"Page\$(\d+)");
-                if (match.Success && int.TryParse(match.Groups[1].Value, out var lastPage))
+                var m = System.Text.RegularExpressions.Regex.Match(href, @"Page\$(\d+)");
+                if (m.Success && int.TryParse(m.Groups[1].Value, out var lastVisible))
                 {
-                    // Fill in all missing pages between current max and lastPage
-                    var currentMax = pages.Count > 0 ? pages.Max() : 1;
-                    for (var i = currentMax + 1; i <= lastPage; i++)
-                        if (!pages.Contains(i))
-                            pages.Add(i);
+                    var currentMax = pages.Max();
+                    for (var i = currentMax + 1; i <= lastVisible; i++)
+                        pages.Add(i);
                 }
             }
         }
 
-        return pages.OrderBy(p => p).ToList();
+        return [.. pages.OrderBy(p => p)];
     }
 
     // ── Helpers ─────────────────────────────────────────────────────
