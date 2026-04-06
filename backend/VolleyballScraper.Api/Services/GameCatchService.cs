@@ -1,6 +1,4 @@
 using Microsoft.Extensions.Caching.Memory;
-using VolleyballScraper.Api.Constants;
-using VolleyballScraper.Api.Models;
 
 namespace VolleyballScraper.Api.Services;
 

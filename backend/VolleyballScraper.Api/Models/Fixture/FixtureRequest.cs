@@ -1,5 +1,3 @@
-using VolleyballScraper.Api.Constants;
-
 namespace VolleyballScraper.Api.Models;
 
 /// <summary>Request body for fetching fixture data.</summary>

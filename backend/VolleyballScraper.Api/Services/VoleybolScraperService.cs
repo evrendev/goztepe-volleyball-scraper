@@ -1,6 +1,4 @@
 using HtmlAgilityPack;
-using VolleyballScraper.Api.Constants;
-using VolleyballScraper.Api.Models;
 
 namespace VolleyballScraper.Api.Services;
 

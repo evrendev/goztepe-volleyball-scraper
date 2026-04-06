@@ -1,6 +1,4 @@
-using VolleyballScraper.Api.Services;
 using Microsoft.OpenApi;
-using VolleyballScraper.Api.Constants;
 
 var builder = WebApplication.CreateBuilder(args);
 

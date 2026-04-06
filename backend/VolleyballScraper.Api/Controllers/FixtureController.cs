@@ -1,7 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using VolleyballScraper.Api.Constants;
-using VolleyballScraper.Api.Models;
-using VolleyballScraper.Api.Services;
 
 namespace VolleyballScraper.Api.Controllers;
 
