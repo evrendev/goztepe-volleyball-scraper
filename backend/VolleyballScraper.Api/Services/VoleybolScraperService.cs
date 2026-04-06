@@ -320,7 +320,13 @@ public class VolleyballScraperService
             if (!string.IsNullOrEmpty(newGen)) viewStateGen = newGen;
         }
 
-        return allGames;
+        return allGames
+        .Where(g =>
+            g.HomeTeam.Contains("Göztepe", StringComparison.OrdinalIgnoreCase) ||
+            g.AwayTeam.Contains("Göztepe", StringComparison.OrdinalIgnoreCase))
+        .GroupBy(g => $"{g.Date}|{g.HomeTeam.Trim()}|{g.AwayTeam.Trim()}|{g.Division}|{g.MatchType}|{g.Week}")
+        .Select(g => g.First())
+        .ToList();
     }
 
     // Extract the red number from the "Record" field on the page
@@ -422,7 +428,6 @@ public class VolleyballScraperService
     }
 
     // ── Parse ───────────────────────────────────────────────────────
-
     private List<Game> ParseGamesFromHtml(string html, string leagueDisplay)
     {
         var games = new List<Game>();
