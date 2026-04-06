@@ -8,31 +8,16 @@ namespace VolleyballScraper.Api.Models.Standings;
 public class Competition
 {
     /// <summary>
-    /// Numeric competition identifier from the federation site.
-    /// Used as part of the POST payload to fetch standings.
-    /// </summary>
-    /// <example>19285</example>
-    public string Id { get; set; } = "";
-
-    /// <summary>
-    /// GUID key associated with the competition on the federation site.
-    /// Combined with <see cref="Id"/> to form the raw dropdown value.
-    /// </summary>
-    /// <example>5DB65D03-09DD-4B8E-99E3-7940EEA1C725</example>
-    public string Key { get; set; } = "";
-
-    /// <summary>
     /// Human-readable competition name as shown on the federation site.
     /// </summary>
-    /// <example>Süper Lig Genç Kızlar - Çf &amp; Yf Elm. Sıralama A Gr</example>
+    /// <example>17345*8FF84B09-1B9E-4C7D-8BF7-F9EC67B4D5E2</example>
     public string Name { get; set; } = "";
 
     /// <summary>
-    /// Raw dropdown option value in the format <c>id*key</c>.
-    /// Sent as-is in the POST payload when selecting a competition.
+    /// Human-readable competition title as shown on the federation site.
     /// </summary>
-    /// <example>19285*5DB65D03-09DD-4B8E-99E3-7940EEA1C725</example>
-    public string RawValue { get; set; } = "";
+    /// <example>Süper Lig Genç Kızlar - Çf &amp; Yf Elm. Sıralama A Gr</example>
+    public string Title { get; set; } = "";
 
     /// <summary>
     /// League code this competition belongs to (e.g. GKSL, MDK1L).

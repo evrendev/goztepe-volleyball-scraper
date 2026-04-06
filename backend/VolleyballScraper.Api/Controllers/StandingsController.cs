@@ -95,11 +95,8 @@ public class StandingsController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.LeagueCode))
             return BadRequest(new { message = "LeagueCode is required." });
 
-        if (string.IsNullOrWhiteSpace(request.CompetitionId))
-            return BadRequest(new { message = "CompetitionId is required." });
-
-        if (string.IsNullOrWhiteSpace(request.CompetitionKey))
-            return BadRequest(new { message = "CompetitionKey is required." });
+        if (string.IsNullOrWhiteSpace(request.CompetitionName))
+            return BadRequest(new { message = "CompetitionName is required." });
 
         var response = await _scraper.GetStandingsAsync(request);
 
@@ -107,7 +104,7 @@ public class StandingsController : ControllerBase
             return NotFound(new
             {
                 message = "No standings data found for the specified competition.",
-                competitionId = request.CompetitionId
+                competitionName = request.CompetitionName
             });
 
         return Ok(response);
@@ -169,18 +166,15 @@ public class StandingsController : ControllerBase
                             SeasonId = seasonId,
                             Category = league.Category,
                             LeagueCode = league.Code,
-                            CompetitionId = competition.Id,
-                            CompetitionKey = competition.Key,
+                            CompetitionName = competition.Name,
                         });
 
                         if (!standings.HasGoztepe) continue;
 
                         allCompetitions.Add(new
                         {
-                            competition.Id,
-                            competition.Key,
                             competition.Name,
-                            competition.RawValue,
+                            competition.Title,
                             competition.LeagueCode,
                             competition.Category,
                             leagueDisplayName = Models.SupportedLeagues

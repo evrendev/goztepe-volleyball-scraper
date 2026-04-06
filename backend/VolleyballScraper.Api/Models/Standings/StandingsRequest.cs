@@ -16,14 +16,8 @@ public class StandingsRequest
     public string LeagueCode { get; set; } = "";
 
     /// <summary>
-    /// Numeric competition ID returned by the competitions endpoint.
+    /// Name of the competition returned by the competitions endpoint.
     /// </summary>
-    /// <example>19285</example>
-    public string CompetitionId { get; set; } = "";
-
-    /// <summary>
-    /// Competition GUID key returned by the competitions endpoint.
-    /// </summary>
-    /// <example>5DB65D03-09DD-4B8E-99E3-7940EEA1C725</example>
-    public string CompetitionKey { get; set; } = "";
+    /// <example>2025-2026 GKSL Group A</example>
+    public string CompetitionName { get; set; } = "";
 }

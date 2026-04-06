@@ -78,7 +78,7 @@ public class StandingsScraperService
     public async Task<StandingsResponse> GetStandingsAsync(StandingsRequest request)
     {
         var cacheKey = _cache.BuildStandingsKey(
-            request.SeasonId, request.CompetitionId);
+            request.SeasonId, request.CompetitionName);
 
         if (_cache.TryGetStandings(cacheKey, out var cached))
             return cached;
@@ -87,7 +87,7 @@ public class StandingsScraperService
 
         var (viewState, viewStateGen, cookie) = await GetViewStateAsync(client);
         _logger.LogInformation(
-            "[Standings] VIEWSTATE retrieved for competition {id}.", request.CompetitionId);
+            "[Standings] VIEWSTATE retrieved for competition {name}.", request.CompetitionName);
 
         // Step 1: Select season
         (viewState, viewStateGen) = await PostStepAsync(
@@ -113,7 +113,7 @@ public class StandingsScraperService
             extraFields: BuildBaseFields(request.SeasonId, request.Category, request.LeagueCode));
 
         // Extract competition name from dropdown before proceeding
-        var competitionName = ExtractCompetitionName(step4Raw, request.CompetitionId);
+        var competitionName = ExtractCompetitionName(step4Raw, request.CompetitionName);
         (viewState, viewStateGen) = ExtractViewState(step4Raw, viewState, viewStateGen);
 
         // Step 5: Select competition
@@ -124,8 +124,7 @@ public class StandingsScraperService
                 request.SeasonId,
                 request.Category,
                 request.LeagueCode,
-                request.CompetitionId,
-                request.CompetitionKey));
+                request.CompetitionName));
 
         var html = ExtractUpdatePanelHtml(standingsRaw);
 
@@ -135,12 +134,11 @@ public class StandingsScraperService
         var hasGoztepe = standings.Any(r => r.IsGoztepe);
 
         _logger.LogInformation(
-            "[Standings] Competition {id}: {standingsCount} teams, {gameCount} games, hasGöztepe={has}.",
-            request.CompetitionId, standings.Count, games.Count, hasGoztepe);
+            "[Standings] Competition {name}: {standingsCount} teams, {gameCount} games, hasGöztepe={has}.",
+            request.CompetitionName, standings.Count, games.Count, hasGoztepe);
 
         var response = new StandingsResponse
         {
-            CompetitionId = request.CompetitionId,
             CompetitionName = competitionName,
             SeasonId = request.SeasonId,
             HasGoztepe = hasGoztepe,
@@ -174,24 +172,18 @@ public class StandingsScraperService
         var options = select.SelectNodes(".//option");
         if (options == null || options.Count < 2) return competitions;
 
-        foreach (var option in options)
+        foreach (var option in options.Skip(1)) // skip the first "Seçiniz" option
         {
-            var rawValue = option.GetAttributeValue("value", "");
-            var name = Clean(option.InnerText);
+            var name = option.GetAttributeValue("value", "");
+            var title = System.Net.WebUtility.HtmlDecode(option.InnerText.Trim());
 
             // Skip the default "Seçiniz" placeholder option
-            if (string.IsNullOrWhiteSpace(rawValue) || rawValue == "0") continue;
-
-            // Raw value format: "19285*5DB65D03-09DD-4B8E-99E3-7940EEA1C725"
-            var parts = rawValue.Split('*');
-            if (parts.Length != 2) continue;
+            if (string.IsNullOrWhiteSpace(name)) continue;
 
             competitions.Add(new Competition
             {
-                Id = parts[0],
-                Key = parts[1],
                 Name = name,
-                RawValue = rawValue,
+                Title = title,
                 LeagueCode = request.LeagueCode,
                 Category = request.Category,
                 HasGoztepe = false, // resolved separately when standings are fetched
@@ -439,16 +431,14 @@ public class StandingsScraperService
     /// </summary>
     private static Dictionary<string, string> BuildCompetitionFields(
         string seasonId, string category, string leagueCode,
-        string competitionId, string competitionKey) =>
+        string competitionName) =>
         new()
         {
             ["ctl00$icerik$ddlSil"] = AppConstants.ProvinceId,
             ["ctl00$icerik$ddlsbe"] = AppConstants.Gender,
             ["ctl00$icerik$ddlSkategori"] = category,
             ["ctl00$icerik$ddlskume"] = leagueCode,
-            ["ctl00$icerik$ddlSyarismaadi"] = $"{competitionId}*{competitionKey}",
-            ["ctl00$icerik$HfYYarismaid"] = competitionId,
-            ["ctl00$icerik$HfYYarismakey"] = competitionKey,
+            ["ctl00$icerik$ddlSyarismaadi"] = competitionName,
             ["ctl00$icerik$HfYKategoriid"] = category,
             ["ctl00$icerik$HfYTurid"] = "",  // populated dynamically by site JS
             ["ctl00$icerik$HfYGrupid"] = "",  // populated dynamically by site JS
@@ -507,9 +497,9 @@ public class StandingsScraperService
 
     /// <summary>
     /// Extracts the competition display name from the yarışma adı dropdown
-    /// by matching the option value that starts with the given competition ID.
+    /// by matching the option value that starts with the given competition name.
     /// </summary>
-    private static string ExtractCompetitionName(string rawResponse, string competitionId)
+    private static string ExtractCompetitionName(string rawResponse, string competitionName)
     {
         var html = ExtractUpdatePanelHtml(rawResponse);
         var doc = new HtmlDocument();
@@ -523,7 +513,7 @@ public class StandingsScraperService
         var option = select
             .SelectNodes(".//option")
             ?.FirstOrDefault(o =>
-                o.GetAttributeValue("value", "").StartsWith($"{competitionId}*"));
+                o.GetAttributeValue("value", "").StartsWith($"{competitionName}*"));
 
         return option == null ? "" : Clean(option.InnerText);
     }

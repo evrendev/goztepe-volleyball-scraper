@@ -25,8 +25,8 @@ public class StandingsCacheService
         $"competitions:{seasonId}:{category}:{leagueCode}";
 
     // Key format: "standings:{seasonId}:{competitionId}"
-    public string BuildStandingsKey(string seasonId, string competitionId) =>
-        $"standings:{seasonId}:{competitionId}";
+    public string BuildStandingsKey(string seasonId, string competitionName) =>
+        $"standings:{seasonId}:{competitionName}";
 
     public bool TryGetCompetitions(string key, out List<Competition> competitions)
     {
