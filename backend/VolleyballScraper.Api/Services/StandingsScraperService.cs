@@ -200,62 +200,52 @@ public class StandingsScraperService
     }
 
     /// <summary>
-    /// Parses the standings table (puan durumu) from the rendered HTML.
-    /// Expects a table with columns: rank, logo, team, O, G, M, A, V, P, SAV, ASP, VSP, SPAV, 3-0, 3-1, 3-2, 2-3, 1-3, 0-3
+    /// Parses the standings table using span element IDs which follow a
+    /// predictable pattern: icerik_GvTemplate_1_{fieldCode}_{rowIndex}
+    /// This is more reliable than td index-based parsing.
     /// </summary>
     private static List<StandingsRow> ParseStandingsTable(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
-        // The standings table has a recognisable header; locate it by known column text
-        var table = doc.DocumentNode
-            .SelectNodes("//table")
-            ?.FirstOrDefault(t => t.InnerHtml.Contains("SAV") && t.InnerHtml.Contains("SPAV"));
-
-        if (table == null) return [];
-
-        var rows = table.SelectNodes(".//tr")?.Skip(1).ToList();
-        if (rows == null) return [];
-
         var standings = new List<StandingsRow>();
-        var rank = 0;
+        var rowIndex = 0;
 
-        foreach (var row in rows)
+        while (true)
         {
-            var cols = row.SelectNodes(".//td");
-            if (cols == null || cols.Count < 14) continue;
+            // Team name is inside an <a> tag — its id follows: GvTemplate_1_lnkSubmit_{index}
+            // We skip index 0 which is the header submit link, data rows start at ctl02 → index 0
+            var teamLink = doc.GetElementbyId($"icerik_GvTemplate_1_lnkSubmit_{rowIndex}");
+            if (teamLink == null) break; // no more rows
 
-            // Column 0 may be rank number or logo — detect by checking if it is numeric
-            var colOffset = int.TryParse(Clean(cols[0].InnerText), out _) ? 0 : 1;
-
-            rank++;
-
-            var teamName = Clean(cols[colOffset + 1].InnerText);
-            if (string.IsNullOrWhiteSpace(teamName)) continue;
+            var teamName = Clean(teamLink.InnerText);
 
             standings.Add(new StandingsRow
             {
-                Rank = rank,
+                Rank = rowIndex + 1,
                 TeamName = teamName,
-                Played = ParseInt(cols[colOffset + 2].InnerText),
-                Won = ParseInt(cols[colOffset + 3].InnerText),
-                Lost = ParseInt(cols[colOffset + 4].InnerText),
-                SetsWon = ParseInt(cols[colOffset + 5].InnerText),
-                SetsLost = ParseInt(cols[colOffset + 6].InnerText),
-                Points = ParseInt(cols[colOffset + 7].InnerText),
-                SetAverage = Clean(cols[colOffset + 8].InnerText),
-                PointsWon = ParseInt(cols[colOffset + 9].InnerText),
-                PointsLost = ParseInt(cols[colOffset + 10].InnerText),
-                PointAverage = Clean(cols[colOffset + 11].InnerText),
-                W30 = ParseInt(cols[colOffset + 12].InnerText),
-                W31 = ParseInt(cols[colOffset + 13].InnerText),
-                W32 = ParseInt(cols[colOffset + 14].InnerText),
-                L23 = cols.Count > colOffset + 15 ? ParseInt(cols[colOffset + 15].InnerText) : 0,
-                L13 = cols.Count > colOffset + 16 ? ParseInt(cols[colOffset + 16].InnerText) : 0,
-                L03 = cols.Count > colOffset + 17 ? ParseInt(cols[colOffset + 17].InnerText) : 0,
-                IsGoztepe = teamName.Contains(AppConstants.ClubName, StringComparison.OrdinalIgnoreCase),
+                Played = GetSpanInt(doc, $"icerik_GvTemplate_1_gO_{rowIndex}"),
+                Won = GetSpanInt(doc, $"icerik_GvTemplate_1_gG_{rowIndex}"),
+                Lost = GetSpanInt(doc, $"icerik_GvTemplate_1_gM_{rowIndex}"),
+                SetsWon = GetSpanInt(doc, $"icerik_GvTemplate_1_gA_{rowIndex}"),
+                SetsLost = GetSpanInt(doc, $"icerik_GvTemplate_1_gV_{rowIndex}"),
+                Points = GetSpanInt(doc, $"icerik_GvTemplate_1_gP_{rowIndex}"),
+                SetAverage = GetSpanText(doc, $"icerik_GvTemplate_1_gSAV_{rowIndex}"),
+                PointsWon = GetSpanInt(doc, $"icerik_GvTemplate_1_gASP_{rowIndex}"),
+                PointsLost = GetSpanInt(doc, $"icerik_GvTemplate_1_gVSP_{rowIndex}"),
+                PointAverage = GetSpanInt(doc, $"icerik_GvTemplate_1_gSPAV_{rowIndex}"),
+                W30 = GetSpanInt(doc, $"icerik_GvTemplate_1_gA3_0_{rowIndex}"),
+                W31 = GetSpanInt(doc, $"icerik_GvTemplate_1_gA3_1_{rowIndex}"),
+                W32 = GetSpanInt(doc, $"icerik_GvTemplate_1_gA3_2_{rowIndex}"),
+                L23 = GetSpanInt(doc, $"icerik_GvTemplate_1_gV2_3_{rowIndex}"),
+                L13 = GetSpanInt(doc, $"icerik_GvTemplate_1_gV1_3_{rowIndex}"),
+                L03 = GetSpanInt(doc, $"icerik_GvTemplate_1_gV0_3_{rowIndex}"),
+                IsGoztepe = teamName.Contains(
+                    AppConstants.ClubName, StringComparison.OrdinalIgnoreCase),
             });
+
+            rowIndex++;
         }
 
         return standings;
@@ -270,7 +260,7 @@ public class StandingsScraperService
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
-        // The game results table contains "Set Sonuçları" in its header
+        // Match results table uses a different template — find by "Set Sonuçları" header
         var table = doc.DocumentNode
             .SelectNodes("//table")
             ?.FirstOrDefault(t => t.InnerHtml.Contains("Set Sonuçları"));
@@ -281,48 +271,47 @@ public class StandingsScraperService
         if (rows == null) return [];
 
         var results = new List<GameResult>();
+        var lastDate = "";
+        var lastTime = "";
+        var lastVenue = "";
 
         foreach (var row in rows)
         {
             var cols = row.SelectNodes(".//td");
-            if (cols == null || cols.Count < 7) continue;
+            if (cols == null || cols.Count < 6) continue;
 
+            // Col 0 = S.No, 1 = Tarih, 2 = Saat, 3 = Salon, 4 = Ev Sahibi
+            // Col 5 = home score (bold), 6 = away score (bold), 7 = Misafir, 8 = Set Sonuçları
             var rowNoText = Clean(cols[0].InnerText);
-            var homeTeam = Clean(cols[4].InnerText);
-            var awayTeam = Clean(cols[6].InnerText);
-            var setResults = cols.Count > 7 ? Clean(cols[7].InnerText) : "";
+            if (!int.TryParse(rowNoText, out var rowNo)) continue;
 
-            // Parse set scores — shown as two adjacent cells with bold text when played
-            var homeScoreText = cols.Count > 4 ? Clean(cols[5].InnerText) : "";
-            var awayScoreText = cols.Count > 5 ? Clean(cols[5].InnerText) : "";
+            var rawDate = Clean(cols[1].InnerText);
+            var rawTime = Clean(cols[2].InnerText);
+            var rawVenue = Clean(cols[3].InnerText);
 
-            // Score cells: col[5] = home sets, col[5] shared — detect from bold spans
-            var scoreCells = row.SelectNodes(".//td[contains(@class,'score') or b]");
-            var homeScore = 0;
-            var awayScore = 0;
-            var isPlayed = !string.IsNullOrWhiteSpace(setResults);
+            // Carry-forward date/time/venue for grouped rows
+            if (!string.IsNullOrWhiteSpace(rawDate)) { lastDate = rawDate; lastTime = rawTime; lastVenue = rawVenue; }
 
-            if (isPlayed)
-            {
-                // Score format: two adjacent cells each containing a bold number
-                var boldNodes = row.SelectNodes(".//b");
-                if (boldNodes != null && boldNodes.Count >= 2)
-                {
-                    _ = int.TryParse(Clean(boldNodes[0].InnerText), out homeScore);
-                    _ = int.TryParse(Clean(boldNodes[1].InnerText), out awayScore);
-                }
-            }
+            var homeTeam = cols.Count > 4 ? Clean(cols[4].InnerText) : "";
+            var homeScore = cols.Count > 5 ? Clean(cols[5].InnerText) : "";
+            var awayScore = cols.Count > 6 ? Clean(cols[6].InnerText) : "";
+            var awayTeam = cols.Count > 7 ? Clean(cols[7].InnerText) : "";
+            var setResults = cols.Count > 8 ? Clean(cols[8].InnerText) : "";
+
+            var isPlayed = int.TryParse(homeScore, out var hs) &
+               int.TryParse(awayScore, out var as_) &
+               (hs > 0 || as_ > 0);
 
             results.Add(new GameResult
             {
-                RowNo = ParseInt(rowNoText),
-                Date = Clean(cols[1].InnerText),
-                Time = Clean(cols[2].InnerText),
-                Venue = Clean(cols[3].InnerText),
+                RowNo = rowNo,
+                Date = string.IsNullOrWhiteSpace(rawDate) ? lastDate : rawDate,
+                Time = string.IsNullOrWhiteSpace(rawTime) ? lastTime : rawTime,
+                Venue = string.IsNullOrWhiteSpace(rawVenue) ? lastVenue : rawVenue,
                 HomeTeam = homeTeam,
                 AwayTeam = awayTeam,
-                HomeScore = homeScore,
-                AwayScore = awayScore,
+                HomeScore = isPlayed ? hs : 0,
+                AwayScore = isPlayed ? as_ : 0,
                 SetResults = setResults,
                 IsPlayed = isPlayed,
                 IsGoztepe =
@@ -486,5 +475,19 @@ public class StandingsScraperService
     {
         var clean = Clean(input).Replace(".", "").Replace(",", "");
         return int.TryParse(clean, out var result) ? result : 0;
+    }
+
+    // ── Span ID helpers ──────────────────────────────────────────────────────────
+
+    private static string GetSpanText(HtmlDocument doc, string spanId)
+    {
+        var node = doc.GetElementbyId(spanId);
+        return node == null ? "" : Clean(node.InnerText);
+    }
+
+    private static int GetSpanInt(HtmlDocument doc, string spanId)
+    {
+        var text = GetSpanText(doc, spanId);
+        return int.TryParse(text.Replace(".", "").Replace(",", ""), out var val) ? val : 0;
     }
 }

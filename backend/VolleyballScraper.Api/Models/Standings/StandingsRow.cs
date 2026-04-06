@@ -57,7 +57,7 @@ public class StandingsRow
     /// Point average ratio: points won / points lost (SPAV — Sayı Puanı Averajı).
     /// </summary>
     /// <example>1.153</example>
-    public string PointAverage { get; set; } = "";
+    public int PointAverage { get; set; }
 
     /// <summary>Number of matches won 3-0 (straight sets).</summary>
     public int W30 { get; set; }
