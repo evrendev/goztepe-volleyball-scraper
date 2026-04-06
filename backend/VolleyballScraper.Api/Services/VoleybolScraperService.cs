@@ -158,7 +158,7 @@ public class VolleyballScraperService
         if (!string.IsNullOrEmpty(newVsFromLeague)) viewState = newVsFromLeague;
         if (!string.IsNullOrEmpty(newGenFromLeague)) viewStateGen = newGenFromLeague;
 
-        // Step 4: Organisation → first page of games
+        // Step 4: Organization → games (with pagination)
         var baseFields = new Dictionary<string, string>
         {
             ["ctl00$icerik$ddlsezon"] = request.SeasonId,
@@ -172,31 +172,26 @@ public class VolleyballScraperService
             ["ctl00$icerik$ddlsyarismaadi"] = "0",
         };
 
-        var firstRaw = await PostStepRawAsync(
-            client, cookie, viewState, viewStateGen,
-            eventTarget: "ctl00$icerik$ddlskurumadi",
-            extraFields: baseFields);
-
-        var recordCount = ExtractRecordCount(firstRaw);
-        _logger.LogInformation("[{code}] Record count: {count}", league.Code, recordCount);
+        var firstRaw = await PostStepRawAsync(client, cookie, viewState, viewStateGen,
+            eventTarget: "ctl00$icerik$ddlskurumadi", extraFields: baseFields);
 
         var firstHtml = ExtractUpdatePanelHtml(firstRaw);
         var allGames = new List<Game>();
         allGames.AddRange(ParseGamesFromHtml(firstHtml, league.DisplayName));
 
-        // Fetch remaining pages
         var pageNumbers = ExtractPageNumbers(firstHtml);
-        _logger.LogInformation("[{code}] Pages: {pages}, first page games: {count}",
+        _logger.LogInformation("[{code}] Pages found: {pages}, page 1 games: {count}",
             league.Code, pageNumbers.Count, allGames.Count);
 
-        var pageViewState = ExtractHiddenField(firstRaw, "__VIEWSTATE");
-        var pageViewGen = ExtractHiddenField(firstRaw, "__VIEWSTATEGENERATOR");
-        if (!string.IsNullOrEmpty(pageViewState)) viewState = pageViewState;
-        if (!string.IsNullOrEmpty(pageViewGen)) viewStateGen = pageViewGen;
+        // Update viewstate from first response
+        var pageVs = ExtractHiddenField(firstRaw, "__VIEWSTATE");
+        var pageGen = ExtractHiddenField(firstRaw, "__VIEWSTATEGENERATOR");
+        if (!string.IsNullOrEmpty(pageVs)) viewState = pageVs;
+        if (!string.IsNullOrEmpty(pageGen)) viewStateGen = pageGen;
 
         foreach (var pageNum in pageNumbers.Skip(1))
         {
-            await Task.Delay(200);
+            await Task.Delay(300);
 
             var pageRaw = await PostStepRawAsync(
                 client, cookie, viewState, viewStateGen,
@@ -346,8 +341,8 @@ public class VolleyballScraperService
             var date = Clean(cols[0].InnerText);
             if (!IsValidDate(date)) continue;
 
-            // Score: col[5] = C column (B/E indicator, not real score)
-            // Real score comes in "3-1" format when available, not "B"
+            // Table columns (0-indexed):
+            // 0=Tarih, 1=Saat, 2=Salon, 3=EvSahibi, 4=Misafir, 5=C(B/E), 6=Küme, 7=Ktg, 8=Tür, 9=Gr, 10=Dv, 11=Tv, 12=Hft
             var scoreRaw = cols.Count > 5 ? Clean(cols[5].InnerText) : "";
             var score = (scoreRaw == "B" || scoreRaw == "E") ? "" : scoreRaw;
 
@@ -360,7 +355,11 @@ public class VolleyballScraperService
                 AwayTeam = cols.Count > 4 ? Clean(cols[4].InnerText) : "",
                 Score = score,
                 Division = cols.Count > 6 ? Clean(cols[6].InnerText) : "",
+                Category = cols.Count > 7 ? Clean(cols[7].InnerText) : "",
+                MatchType = cols.Count > 8 ? Clean(cols[8].InnerText) : "",
                 Group = cols.Count > 9 ? Clean(cols[9].InnerText) : "",
+                Round = cols.Count > 10 ? Clean(cols[10].InnerText) : "",
+                Week = cols.Count > 12 ? Clean(cols[12].InnerText) : "",
                 League = leagueDisplay,
             });
         }

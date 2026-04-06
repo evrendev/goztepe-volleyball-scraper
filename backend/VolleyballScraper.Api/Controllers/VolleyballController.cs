@@ -37,8 +37,9 @@ public class VolleyballController : ControllerBase
 
     /// <summary>
     /// Fetches fixture data for Göztepe from the specified season and leagues.
+    /// Supports optional filtering by division, category, match type, group, round and week.
     /// </summary>
-    /// <param name="request">Season ID and optional league filter.</param>
+    /// <param name="request">Season ID, optional league filter and optional field filters.</param>
     /// <param name="forceRefresh">If true, bypasses cache and re-fetches from site.</param>
     /// <returns>Grouped fixture data by league.</returns>
     /// <remarks>
@@ -47,7 +48,9 @@ public class VolleyballController : ControllerBase
     ///     POST /api/volleyball/games
     ///     {
     ///         "seasonId": "2025-2026",
-    ///         "leagues": ["GKSL", "YKSL"]
+    ///         "leagues": ["GKSL", "YKSL"],
+    ///         "matchType": "KL",
+    ///         "group": "A"
     ///     }
     ///
     /// Leave `leagues` empty to fetch all supported leagues.
@@ -64,12 +67,50 @@ public class VolleyballController : ControllerBase
 
         var games = await _scraper.GetGamesAsync(request, forceRefresh);
 
+        // Apply optional filters
+        var filtered = games.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(request.Division))
+            filtered = filtered.Where(g =>
+                g.Division.Equals(request.Division, StringComparison.OrdinalIgnoreCase));
+
+        if (!string.IsNullOrWhiteSpace(request.Category))
+            filtered = filtered.Where(g =>
+                g.Category.Equals(request.Category, StringComparison.OrdinalIgnoreCase));
+
+        if (!string.IsNullOrWhiteSpace(request.MatchType))
+            filtered = filtered.Where(g =>
+                g.MatchType.Equals(request.MatchType, StringComparison.OrdinalIgnoreCase));
+
+        if (!string.IsNullOrWhiteSpace(request.Group))
+            filtered = filtered.Where(g =>
+                g.Group.Equals(request.Group, StringComparison.OrdinalIgnoreCase));
+
+        if (!string.IsNullOrWhiteSpace(request.Round))
+            filtered = filtered.Where(g =>
+                g.Round.Equals(request.Round, StringComparison.OrdinalIgnoreCase));
+
+        if (!string.IsNullOrWhiteSpace(request.Week))
+            filtered = filtered.Where(g =>
+                g.Week.Equals(request.Week, StringComparison.OrdinalIgnoreCase));
+
+        var result = filtered.ToList();
+
         return Ok(new
         {
-            total = games.Count,
+            total = result.Count,
             season = request.SeasonId,
             cachedLeagues = _cache.GetCachedKeys().Count(k => k.Contains(request.SeasonId)),
-            leagues = games
+            filters = new
+            {
+                request.Division,
+                request.Category,
+                request.MatchType,
+                request.Group,
+                request.Round,
+                request.Week,
+            },
+            leagues = result
                 .GroupBy(m => m.League)
                 .Select(g => new
                 {
