@@ -134,7 +134,7 @@ public class StandingsController : ControllerBase
         [FromQuery] string? category = null)
     {
         // Determine which leagues to scan
-        var leagues = Models.SupportedLeagues.All
+        var leagues = SupportedLeagues.All
             .Where(l => category == null ||
                         l.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
             .ToList();
