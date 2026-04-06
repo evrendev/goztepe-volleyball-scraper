@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VolleyballScraper.Api.Constants;
 using VolleyballScraper.Api.Models;
 using VolleyballScraper.Api.Services;
 
@@ -10,12 +11,12 @@ namespace VolleyballScraper.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class VolleyballController : ControllerBase
+public class FixtureController : ControllerBase
 {
     private readonly VolleyballScraperService _scraper;
     private readonly GameCacheService _cache;
 
-    public VolleyballController(VolleyballScraperService scraper, GameCacheService cache)
+    public FixtureController(VolleyballScraperService scraper, GameCacheService cache)
     {
         _scraper = scraper;
         _cache = cache;
@@ -45,7 +46,7 @@ public class VolleyballController : ControllerBase
     /// <remarks>
     /// Sample request:
     ///
-    ///     POST /api/volleyball/games
+    ///     POST /api/fixture/games
     ///     {
     ///         "seasonId": "2025-2026",
     ///         "leagues": ["GKSL", "YKSL"],
@@ -150,6 +151,76 @@ public class VolleyballController : ControllerBase
             seasonId
         });
     }
+
+    /// <summary>
+    /// Returns all supported categories (Kategori) with their leagues.
+    /// </summary>
+    [HttpGet("categories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetCategories() =>
+        Ok(SupportedLeagues.All
+            .GroupBy(l => l.Category)
+            .Select(g => new
+            {
+                category = g.Key,
+                displayName = CategoryDisplayName(g.Key),
+                leagues = g.Select(l => new
+                {
+                    l.Code,
+                    l.DisplayName
+                })
+            }));
+
+    /// <summary>
+    /// Returns leagues filtered by category code.
+    /// </summary>
+    /// <param name="category">Category code. E.g. GK, KK, MdK, YK, MnK, BB</param>
+    [HttpGet("categories/{category}/leagues")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public IActionResult GetLeaguesByCategory(string category)
+    {
+        var leagues = SupportedLeagues.All
+            .Where(l => l.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (leagues.Count == 0)
+            return NotFound(new { message = $"No leagues found for category: {category}" });
+
+        return Ok(new
+        {
+            category = category,
+            displayName = CategoryDisplayName(category),
+            leagues = leagues.Select(l => new { l.Code, l.DisplayName })
+        });
+    }
+
+    /// <summary>
+    /// Returns metadata for all supported seasons.
+    /// </summary>
+    [HttpGet("seasons")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetSeasons() =>
+        Ok(new
+        {
+            defaultSeasonId = AppConstants.SeasonId,
+            seasons = new[]
+            {
+                new { id = "2025-2026", label = "2025-2026" },
+                new { id = "2024-2025", label = "2024-2025" },
+                new { id = "2023-2024", label = "2023-2024" },
+            }
+        });
+
+    private static string CategoryDisplayName(string category) => category switch
+    {
+        "GK" => "Genç Kız",
+        "YK" => "Yıldız Kız",
+        "KK" => "Küçük Kız",
+        "MdK" => "Midi Kız",
+        "MnK" => "Mini Kız",
+        _ => category
+    };
 
     /// <summary>
     /// Debug: returns raw response from site for a single league step.
