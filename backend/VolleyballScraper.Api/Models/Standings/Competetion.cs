@@ -17,7 +17,7 @@ public class Competition
     /// Human-readable competition title as shown on the federation site.
     /// </summary>
     /// <example>Süper Lig Genç Kızlar - Çf &amp; Yf Elm. Sıralama A Gr</example>
-    public string Title { get; set; } = "";
+    public string DisplayName { get; set; } = "";
 
     /// <summary>
     /// League code this competition belongs to (e.g. GKSL, MDK1L).

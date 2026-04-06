@@ -174,7 +174,7 @@ public class StandingsController : ControllerBase
                         allCompetitions.Add(new
                         {
                             competition.Name,
-                            competition.Title,
+                            competition.DisplayName,
                             competition.LeagueCode,
                             competition.Category,
                             leagueDisplayName = Models.SupportedLeagues

@@ -183,7 +183,7 @@ public class StandingsScraperService
             competitions.Add(new Competition
             {
                 Name = name,
-                Title = title,
+                DisplayName = title,
                 LeagueCode = request.LeagueCode,
                 Category = request.Category,
                 HasGoztepe = false, // resolved separately when standings are fetched
