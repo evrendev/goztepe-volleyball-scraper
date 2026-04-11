@@ -17,19 +17,6 @@ function formatDate(dateStr: string) {
   }
   return dateStr;
 }
-
-function getResultBadgeClass(result: string) {
-  switch (result?.toLowerCase()) {
-    case "g":
-    case "galibiyet":
-      return "bg-green-100 text-green-800";
-    case "m":
-    case "mağlubiyet":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-}
 </script>
 
 <template>
@@ -70,85 +57,58 @@ function getResultBadgeClass(result: string) {
       <p class="text-sm">Maç sonucu bulunamadı.</p>
     </div>
 
-    <div v-else class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="bg-gray-50 border-b border-gray-100">
-            <th class="text-left py-3 px-4 font-medium text-gray-600">Tarih</th>
-            <th class="text-left py-3 px-4 font-medium text-gray-600">Saat</th>
-            <th class="text-left py-3 px-4 font-medium text-gray-600">
-              Ev Sahibi
-            </th>
-            <th class="text-center py-3 px-4 font-medium text-gray-600">
-              Skor
-            </th>
-            <th class="text-left py-3 px-4 font-medium text-gray-600">
-              Deplasman
-            </th>
-            <th class="text-center py-3 px-4 font-medium text-gray-600">
-              Sonuç
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="game in games"
-            :key="game.rowNo"
-            :class="[
-              'border-b border-gray-50 hover:bg-gray-25',
-              game.isGoztepeHome || game.isGoztepeAway
-                ? 'bg-goztepe-red bg-opacity-5'
-                : '',
-            ]"
-          >
-            <td class="py-3 px-4 text-gray-600">
-              {{ formatDate(game.date) }}
-            </td>
-            <td class="py-3 px-4 text-gray-600">
-              {{ game.time || "-" }}
-            </td>
-            <td class="py-3 px-4">
-              <span
-                :class="
-                  game.isGoztepeHome
-                    ? 'font-semibold text-goztepe-red'
-                    : 'text-gray-900'
-                "
-              >
-                {{ game.homeTeam }}
-              </span>
-            </td>
-            <td class="py-3 px-4 text-center">
-              <span class="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+    <div v-else class="space-y-3 p-4">
+      <div
+        v-for="game in games"
+        :key="game.rowNo"
+        :class="[
+          'rounded-lg border p-3 transition-shadow hover:shadow-md',
+          'bg-white border-gray-100',
+          game.isGoztepeHome || game.isGoztepeAway ? 'border-l-4 border-l-goztepe-red' : ''
+        ]"
+      >
+        <div class="flex items-center justify-between gap-4">
+          <!-- Far Left: Home Team -->
+          <div class="flex-1 text-left">
+            <div
+              :class="[
+                'text-sm font-semibold',
+                game.isGoztepeHome ? 'text-goztepe-red font-bold' : 'text-gray-800',
+              ]"
+            >
+              {{ game.homeTeam }}
+            </div>
+          </div>
+
+          <!-- Center: Date, Score, Time -->
+          <div class="text-center space-y-1 min-w-20">
+            <!-- Date above -->
+            <div class="text-xs text-gray-600 font-medium">{{ formatDate(game.date) }}</div>
+            
+            <!-- Score -->
+            <div class="px-2">
+              <span class="text-xs font-bold text-gray-700 tracking-widest bg-gray-200 px-2 py-1 rounded">
                 {{ game.score || "-" }}
               </span>
-            </td>
-            <td class="py-3 px-4">
-              <span
-                :class="
-                  game.isGoztepeAway
-                    ? 'font-semibold text-goztepe-red'
-                    : 'text-gray-900'
-                "
-              >
-                {{ game.awayTeam }}
-              </span>
-            </td>
-            <td class="py-3 px-4 text-center">
-              <span
-                v-if="game.result"
-                :class="[
-                  'inline-block px-2 py-1 text-xs font-medium rounded-full',
-                  getResultBadgeClass(game.result),
-                ]"
-              >
-                {{ game.result }}
-              </span>
-              <span v-else class="text-gray-400 text-xs">-</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+            
+            <!-- Time below -->
+            <div class="text-xs text-gray-400">{{ game.time || "-" }}</div>
+          </div>
+
+          <!-- Far Right: Away Team -->
+          <div class="flex-1 text-right">
+            <div
+              :class="[
+                'text-sm font-semibold',
+                game.isGoztepeAway ? 'text-goztepe-red font-bold' : 'text-gray-800',
+              ]"
+            >
+              {{ game.awayTeam }}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>

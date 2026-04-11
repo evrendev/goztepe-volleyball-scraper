@@ -1,22 +1,24 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { standingsService } from "@/services/volleyballService";
+import { standingsService, fixtureService } from "@/services/volleyballService";
 import type {
   Competition,
   CompetitionRequest,
   StandingsRequest,
   StandingsResponse,
+  LeagueDefinition,
 } from "@/types";
 
 export const useStandingsStore = defineStore("standings", () => {
   const competitions = ref<Competition[]>([]);
+  const leagues = ref<LeagueDefinition[]>([]);
   const selectedCompetition = ref<Competition | null>(null);
   const standings = ref<StandingsResponse | null>(null);
   const goztepeCompetitions = ref<any[]>([]);
 
-  const selectedSeason = ref("2025-2026");
-  const selectedCategory = ref("GK"); // Genç Kızlar
-  const selectedLeagueCode = ref("GKSL"); // Genç Kızlar Süper Ligi
+  const selectedSeason = ref("");
+  const selectedCategory = ref("");
+  const selectedLeagueCode = ref("");
 
   const loading = ref(false);
   const error = ref<string | null>(null);
@@ -25,20 +27,21 @@ export const useStandingsStore = defineStore("standings", () => {
   const availableCategories = [
     { code: "GK", name: "Genç Kızlar" },
     { code: "KK", name: "Küçük Kızlar" },
-    { code: "BB", name: "Büyük Bayan" },
     { code: "YK", name: "Yıldız Kızlar" },
-    { code: "MiK", name: "Minik Kızlar" },
+    { code: "MdK", name: "Midi Kızlar" },
+    { code: "MnK", name: "Mini Kızlar" },
   ];
 
   const availableLeagues = computed(() => {
-    // Backend'den gelen ligler burada olacak, şimdilik sabit değerler
-    return [
-      { code: "GKSL", name: "Genç Kızlar Süper Ligi", category: "GK" },
-      { code: "GK1L", name: "Genç Kızlar 1. Ligi", category: "GK" },
-      { code: "KKSL", name: "Küçük Kızlar Süper Ligi", category: "KK" },
-      { code: "BBSL", name: "Büyük Bayalar Süper Ligi", category: "BB" },
-      { code: "YKSL", name: "Yıldız Kızlar Süper Ligi", category: "YK" },
-    ].filter((l) => l.category === selectedCategory.value);
+    if (
+      !leagues.value ||
+      !Array.isArray(leagues.value) ||
+      !selectedCategory.value
+    )
+      return [];
+    return leagues.value.filter(
+      (l) => l.categoryCode === selectedCategory.value,
+    );
   });
 
   const goztepeStandings = computed(() => {
@@ -53,7 +56,24 @@ export const useStandingsStore = defineStore("standings", () => {
     );
   });
 
+  async function fetchLeagues() {
+    try {
+      leagues.value = await fixtureService.getLeagues();
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "Ligler yüklenemedi";
+    }
+  }
+
   async function fetchCompetitions() {
+    if (
+      !selectedSeason.value ||
+      !selectedCategory.value ||
+      !selectedLeagueCode.value
+    ) {
+      competitions.value = [];
+      return;
+    }
+
     loading.value = true;
     error.value = null;
     try {
@@ -65,11 +85,6 @@ export const useStandingsStore = defineStore("standings", () => {
 
       const response = await standingsService.getCompetitions(request);
       competitions.value = response.competitions;
-
-      // İlk yarışmayı varsayılan olarak seç
-      if (competitions.value.length > 0) {
-        selectedCompetition.value = competitions.value[0];
-      }
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Yarışmalar yüklenemedi";
       competitions.value = [];
@@ -125,15 +140,13 @@ export const useStandingsStore = defineStore("standings", () => {
 
   async function changeCategory(category: string) {
     selectedCategory.value = category;
-    // Kategori değiştiğinde lig de değişmeli
-    const newLeagues = availableLeagues.value;
-    if (newLeagues.length > 0) {
-      selectedLeagueCode.value = newLeagues[0].code;
-    }
+    selectedLeagueCode.value = "";
     competitions.value = [];
     selectedCompetition.value = null;
     standings.value = null;
-    await fetchCompetitions();
+    // Force reload leagues to ensure fresh data
+    leagues.value = [];
+    await fetchLeagues();
   }
 
   async function changeLeague(leagueCode: string) {
@@ -141,21 +154,40 @@ export const useStandingsStore = defineStore("standings", () => {
     competitions.value = [];
     selectedCompetition.value = null;
     standings.value = null;
-    await fetchCompetitions();
+    // Always fetch competitions when league changes (if all required fields are present)
+    if (leagueCode && selectedSeason.value && selectedCategory.value) {
+      await fetchCompetitions();
+    }
   }
 
   async function changeSeason(season: string) {
     selectedSeason.value = season;
+    selectedLeagueCode.value = "";
     competitions.value = [];
     selectedCompetition.value = null;
     standings.value = null;
     goztepeCompetitions.value = [];
-    await fetchCompetitions();
+    // Force reload leagues to ensure fresh data
+    leagues.value = [];
+    await fetchLeagues();
+  }
+
+  function resetAll() {
+    selectedSeason.value = "";
+    selectedCategory.value = "";
+    selectedLeagueCode.value = "";
+    leagues.value = [];
+    competitions.value = [];
+    selectedCompetition.value = null;
+    standings.value = null;
+    goztepeCompetitions.value = [];
+    error.value = null;
   }
 
   return {
     // State
     competitions,
+    leagues,
     selectedCompetition,
     standings,
     goztepeCompetitions,
@@ -173,9 +205,11 @@ export const useStandingsStore = defineStore("standings", () => {
     goztepeGames,
 
     // Actions
+    fetchLeagues,
     fetchCompetitions,
     fetchStandings,
     fetchGoztepeCompetitions,
+    resetAll,
     selectCompetition,
     changeCategory,
     changeLeague,

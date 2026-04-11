@@ -1,6 +1,7 @@
 import type {
   CacheStatus,
   FixtureRequest,
+  FixtureResponse,
   Game,
   LeagueDefinition,
   CompetitionRequest,
@@ -30,17 +31,32 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const fixtureService = {
   // Fixture API endpoints
-  getLeagues(): Promise<LeagueDefinition[]> {
-    return request<LeagueDefinition[]>("/api/fixture/leagues");
+  async getLeagues(): Promise<LeagueDefinition[]> {
+    const response = await request<
+      { code: string; displayName: string; category: string }[]
+    >("/api/fixture/leagues");
+    return response.map((league) => ({
+      code: league.code,
+      name: league.displayName,
+      categoryCode: league.category,
+      displayName: league.displayName,
+    }));
   },
 
   getGames(payload: FixtureRequest, forceRefresh = false): Promise<Game[]> {
     const url = forceRefresh
       ? "/api/fixture/games?forceRefresh=true"
       : "/api/fixture/games";
-    return request<Game[]>(url, {
+    return request<FixtureResponse>(url, {
       method: "POST",
       body: JSON.stringify(payload),
+    }).then((response) => {
+      // Extract games from the nested structure
+      const allGames: Game[] = [];
+      for (const leagueGroup of response.leagues) {
+        allGames.push(...leagueGroup.games);
+      }
+      return allGames;
     });
   },
 

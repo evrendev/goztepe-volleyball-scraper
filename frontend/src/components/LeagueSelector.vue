@@ -1,38 +1,18 @@
 <script setup lang="ts">
 import { onMounted, watch } from "vue";
-import { useStandingsStore } from "@/stores/standings";
+import { useVolleyballStore } from "@/stores/volleyball";
 
-const store = useStandingsStore();
-
-function selectCompetition(competitionName: string) {
-  const competition = store.competitions.find(
-    (c) => c.name === competitionName,
-  );
-  if (competition) {
-    store.selectCompetition(competition);
-  }
-}
+const store = useVolleyballStore();
 
 onMounted(() => {
   // Load leagues for both pages to use
   store.fetchLeagues();
-
   // Watch for category changes and reload leagues
   watch(
     () => store.selectedCategory,
     (newCategory) => {
       if (newCategory) {
         store.fetchLeagues();
-      }
-    },
-  );
-
-  // Watch for league changes and automatically load competitions
-  watch(
-    () => store.selectedLeagueCode,
-    (newLeagueCode) => {
-      if (newLeagueCode && store.selectedSeason && store.selectedCategory) {
-        store.fetchCompetitions();
       }
     },
   );
@@ -44,7 +24,7 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-        Puan Durumu Seçimi
+        Fixture Seçimi
       </h2>
       <button
         @click="store.resetAll()"
@@ -66,6 +46,9 @@ onMounted(() => {
         Sıfırla
       </button>
     </div>
+
+    <!-- Selection Controls -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4"></div>
 
     <!-- Selection Controls -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
@@ -124,12 +107,12 @@ onMounted(() => {
           @change="
             store.changeLeague(($event.target as HTMLSelectElement).value)
           "
-          :disabled="!store.selectedCategory || !store.availableLeagues.length"
+          :disabled="!store.selectedCategory || !store.filteredLeagues.length"
           class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-goztepe-red disabled:opacity-50"
         >
           <option value="">Lig Seçiniz</option>
           <option
-            v-for="league in store.availableLeagues"
+            v-for="league in store.filteredLeagues"
             :key="league.code"
             :value="league.code"
           >
@@ -138,26 +121,28 @@ onMounted(() => {
         </select>
       </div>
 
-      <!-- Competition -->
+      <!-- Division -->
       <div>
         <label class="block text-xs font-medium text-gray-600 mb-2"
-          >Yarışma</label
+          >Küme/Grup</label
         >
         <select
-          :value="store.selectedCompetition?.name || ''"
+          :value="store.selectedDivision"
           @change="
-            selectCompetition(($event.target as HTMLSelectElement).value)
+            store.changeDivision(($event.target as HTMLSelectElement).value)
           "
-          :disabled="!store.selectedLeagueCode || !store.competitions.length"
+          :disabled="
+            !store.selectedLeagueCode || !store.availableDivisions.length
+          "
           class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-goztepe-red disabled:opacity-50"
         >
-          <option value="">Yarışma Seçiniz</option>
+          <option value="">Küme/Grup Seçiniz</option>
           <option
-            v-for="competition in store.competitions"
-            :key="competition.name"
-            :value="competition.name"
+            v-for="division in store.availableDivisions"
+            :key="division.code"
+            :value="division.code"
           >
-            {{ competition.displayName }}
+            {{ division.name }}
           </option>
         </select>
       </div>
@@ -183,7 +168,7 @@ onMounted(() => {
           d="M4 12a8 8 0 018-8v8H4z"
         />
       </svg>
-      Yarışmalar yükleniyor...
+      Fixtures yükleniyor...
     </div>
 
     <!-- Error State -->

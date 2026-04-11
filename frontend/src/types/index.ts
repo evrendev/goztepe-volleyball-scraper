@@ -21,23 +21,48 @@ export interface LeagueDefinition {
 export interface FixtureRequest {
   seasonId: string;
   leagues?: string[];
+  category?: string;
+  division?: string;
+  group?: string;
   organisationId?: string;
   gender?: string;
+}
+
+export interface FixtureResponse {
+  total: number;
+  season: string;
+  cachedLeagues: number;
+  filters: {
+    division?: string;
+    category?: string;
+    matchType?: string;
+    group?: string;
+    round?: string;
+    week?: string;
+  };
+  leagues: Array<{
+    league: string;
+    count: number;
+    games: Game[];
+  }>;
 }
 
 // Standings Types
 export interface Competition {
   name: string;
   displayName: string;
+  league: string;
   leagueCode: string;
   category: string;
+  division?: string;
+  group?: string;
   hasGoztepe: boolean;
 }
 
 export interface CompetitionRequest {
   seasonId: string;
   category: string;
-  leagueCode: string;
+  leagueCode?: string;
 }
 
 export interface CompetitionsResponse {

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "@/views/HomeView.vue";
+import FixtureView from "@/views/FixtureView.vue";
 import StandingsView from "@/views/StandingsView.vue";
 
 const router = createRouter({
@@ -8,7 +8,7 @@ const router = createRouter({
     {
       path: "/",
       name: "home",
-      component: HomeView,
+      component: FixtureView,
     },
     {
       path: "/standings",
