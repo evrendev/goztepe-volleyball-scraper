@@ -153,7 +153,6 @@ function formatDateToTurkish(dateStr: string): string {
           >
             {{ getScoreDisplay(gameData) }}
           </span>
-
         </div>
 
         <!-- Set results below (only for played games) -->
