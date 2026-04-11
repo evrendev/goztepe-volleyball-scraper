@@ -246,7 +246,7 @@ public class StandingsController : ControllerBase
         {
             _cache.Clear(seasonId);
         }
-        
+
         return Ok(new
         {
             message = seasonId == null ? "All standings cache cleared" : $"Cache cleared for season {seasonId}",
