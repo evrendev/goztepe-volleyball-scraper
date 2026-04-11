@@ -6,9 +6,7 @@ interface Props {
   loading?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  loading: false,
-});
+const { standings, loading = false } = defineProps<Props>()
 </script>
 
 <template>

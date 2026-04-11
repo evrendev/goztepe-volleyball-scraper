@@ -6,7 +6,7 @@ interface Props {
   loading?: boolean;
 }
 
-const { games, loading = false } = defineProps<Props>()
+const { games, loading = false } = defineProps<Props>();
 
 function formatDate(dateStr: string) {
   if (!dateStr) return "";
