@@ -18,7 +18,7 @@ public class StandingsScraperServiceTests
         _httpClientFactoryMock = new Mock<IHttpClientFactory>();
         _loggerMock = new Mock<ILogger<StandingsScraperService>>();
         _cacheMock = new Mock<StandingsCacheService>();
-        
+
         _service = new StandingsScraperService(
             _httpClientFactoryMock.Object,
             _loggerMock.Object,
@@ -48,7 +48,7 @@ public class StandingsScraperServiceTests
         var cacheKey = "test-cache-key";
         _cacheMock.Setup(x => x.BuildCompetitionsKey(seasonId, category, leagueCode))
             .Returns(cacheKey);
-        
+
         _cacheMock.Setup(x => x.TryGetCompetitions(cacheKey, out It.Ref<List<Competition>>.IsAny))
             .Returns((string key, out List<Competition> competitions) =>
             {
@@ -73,14 +73,14 @@ public class StandingsScraperServiceTests
         var request = new CompetitionRequest
         {
             SeasonId = "2025-2026",
-            Category = "GK", 
+            Category = "GK",
             LeagueCode = "GKSL"
         };
 
         var cacheKey = "test-cache-key";
         _cacheMock.Setup(x => x.BuildCompetitionsKey(request.SeasonId, request.Category, request.LeagueCode))
             .Returns(cacheKey);
-        
+
         _cacheMock.Setup(x => x.TryGetCompetitions(cacheKey, out It.Ref<List<Competition>>.IsAny))
             .Returns(false);
 

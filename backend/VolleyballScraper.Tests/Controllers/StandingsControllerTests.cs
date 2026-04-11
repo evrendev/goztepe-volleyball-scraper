@@ -34,8 +34,8 @@ public class StandingsControllerTests
 
         var expectedCompetitions = new List<Competition>
         {
-            new() 
-            { 
+            new()
+            {
                 Name = "17345*8FF84B09-1B9E-4C7D-8BF7-F9EC67B4D5E2",
                 DisplayName = "Süper Lig Genç Kızlar - B Gr",
                 LeagueCode = "GKSL",
@@ -89,13 +89,13 @@ public class StandingsControllerTests
             HasGoztepe = true,
             Standings = new List<StandingsRow>
             {
-                new() 
-                { 
-                    Rank = 1, 
-                    TeamName = "Göztepe", 
-                    Points = 14, 
-                    Played = 5, 
-                    Won = 5, 
+                new()
+                {
+                    Rank = 1,
+                    TeamName = "Göztepe",
+                    Points = 14,
+                    Played = 5,
+                    Won = 5,
                     Lost = 0,
                     IsGoztepe = true
                 }
