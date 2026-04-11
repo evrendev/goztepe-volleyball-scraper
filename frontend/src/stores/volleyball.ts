@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { volleyballService } from "@/services/volleyballService";
+import { fixtureService } from "@/services/volleyballService";
 import type { Game, LeagueDefinition } from "@/types";
 
 export const useVolleyballStore = defineStore("volleyball", () => {
@@ -32,7 +32,7 @@ export const useVolleyballStore = defineStore("volleyball", () => {
 
   async function fetchLeagues() {
     try {
-      leagues.value = await volleyballService.getLeagues();
+      leagues.value = await fixtureService.getLeagues();
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Ligler yüklenemedi";
     }
@@ -42,12 +42,56 @@ export const useVolleyballStore = defineStore("volleyball", () => {
     loading.value = true;
     error.value = null;
     try {
-      games.value = await volleyballService.getGames(
+      games.value = await fixtureService.getGames(
         {
           seasonId: selectedSeason.value,
           leagues: selectedLeagueCodes.value.length
             ? selectedLeagueCodes.value
             : undefined,
+        },
+        forceRefresh,
+      );
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "Fikstür yüklenemedi";
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function toggleLeague(code: string) {
+    const idx = selectedLeagueCodes.value.indexOf(code);
+    if (idx === -1) {
+      selectedLeagueCodes.value.push(code);
+    } else {
+      selectedLeagueCodes.value.splice(idx, 1);
+    }
+  }
+
+  function selectAllLeagues() {
+    selectedLeagueCodes.value = leagues.value.map(l => l.code);
+  }
+
+  function clearLeagueSelection() {
+    selectedLeagueCodes.value = [];
+  }
+
+  return {
+    leagues,
+    games,
+    selectedLeagueCodes,
+    selectedSeason,
+    loading,
+    error,
+    availableSeasons,
+    filteredGames,
+    gamesByLeague,
+    fetchLeagues,
+    fetchGames,
+    toggleLeague,
+    selectAllLeagues,
+    clearLeagueSelection,
+  };
+});
         },
         forceRefresh,
       );
