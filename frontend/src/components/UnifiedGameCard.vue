@@ -11,7 +11,7 @@ function isPlayed(data: Game | GameResult): boolean {
   if (isGameResult(data)) {
     return data.isPlayed;
   }
-  return data.score && data.score.trim() !== "";
+  return Boolean(data.score && data.score.trim() !== "");
 }
 
 function isGameResult(data: Game | GameResult): data is GameResult {
@@ -70,6 +70,31 @@ function getSetResults(data: Game | GameResult): string | null {
   }
   return null;
 }
+
+function formatDateToTurkish(dateStr: string): string {
+  if (!dateStr) return "";
+
+  // Convert DD.MM.YYYY to Turkish format
+  const [day, month, year] = dateStr.split(".");
+  const monthNames = [
+    "",
+    "Ocak",
+    "Şubat",
+    "Mart",
+    "Nisan",
+    "Mayıs",
+    "Haziran",
+    "Temmuz",
+    "Ağustos",
+    "Eylül",
+    "Ekim",
+    "Kasım",
+    "Aralık",
+  ];
+
+  const monthName = monthNames[parseInt(month, 10)];
+  return `${parseInt(day, 10)} ${monthName} ${year}`;
+}
 </script>
 
 <template>
@@ -102,9 +127,22 @@ function getSetResults(data: Game | GameResult): string | null {
 
       <!-- Center: Date, Score, Time -->
       <div class="text-center space-y-1 min-w-20">
-        <!-- Date and time above -->
+        <!-- Date above -->
         <div class="text-xs text-gray-600 font-medium">
-          {{ gameData.date }} {{ gameData.time }}
+          {{ formatDateToTurkish(gameData.date) }}
+        </div>
+
+        <!-- Time below date -->
+        <div
+          v-if="gameData.time && gameData.time.trim()"
+          class="text-xs text-gray-500"
+        >
+          {{ gameData.time }}
+        </div>
+
+        <!-- Debug: Show when time is missing -->
+        <div v-else-if="!isPlayed(gameData)" class="text-xs text-red-400">
+          -
         </div>
 
         <!-- Score -->
