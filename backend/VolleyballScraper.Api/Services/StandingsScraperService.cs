@@ -259,96 +259,37 @@ public class StandingsScraperService
     }
 
     /// <summary>
-    /// Gets all game results by trying different MacTemplate values to overcome pagination/template limitations.
-    /// The website seems to show only 5 results at a time when using MacTemplate="1".
-    /// This method tries different template values to get the complete list of match results.
+    /// Gets all game results by clicking the "Show All" (lnkTumu) link.
+    /// This provides the complete list of match results for the competition.
     /// </summary>
     private async Task<List<GameResult>> GetAllGameResultsAsync(
         HttpClient client, string cookie, StandingsRequest request,
         string viewState, string viewStateGen)
     {
-        var allGames = new List<GameResult>();
-        var uniqueGames = new HashSet<string>(); // To avoid duplicates
-
-        // First try clicking the "lnkTumu" (Show All) link in the table header
         try
         {
-            _logger.LogInformation("[Standings] Trying lnkTumu (Show All) link for complete game results");
+            _logger.LogInformation("[Standings] Getting all game results using Show All link");
 
-            var tumuRaw = await PostStepRawAsync(
+            var gameResultsRaw = await PostStepRawAsync(
                 client, cookie, viewState, viewStateGen,
                 eventTarget: "ctl00$icerik$GvTemplate_1$ctl01$lnkTumu",
                 extraFields: BuildCompetitionFields(
                     request.SeasonId,
                     request.Category,
                     request.LeagueCode,
-                    request.CompetitionName,
-                    "1"));
+                    request.CompetitionName));
 
-            var tumuHtml = ExtractUpdatePanelHtml(tumuRaw);
-            var tumuGames = ParseGameResults(tumuHtml);
+            var html = ExtractUpdatePanelHtml(gameResultsRaw);
+            var games = ParseGameResults(html);
 
-            _logger.LogInformation("[Standings] lnkTumu returned {count} games", tumuGames.Count);
-
-            if (tumuGames.Count > 5)
-            {
-                _logger.LogInformation("[Standings] lnkTumu provided more results, using {count} games", tumuGames.Count);
-                return tumuGames.OrderBy(g => g.RowNo).ToList();
-            }
-
-            // Update ViewState for next attempts
-            (viewState, viewStateGen) = ExtractViewState(tumuRaw, viewState, viewStateGen);
+            _logger.LogInformation("[Standings] Retrieved {count} games", games.Count);
+            return games.OrderBy(g => g.RowNo).ToList();
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "[Standings] Failed to use lnkTumu link");
+            _logger.LogWarning(ex, "[Standings] Failed to get game results, returning empty list");
+            return new List<GameResult>();
         }
-
-        // Try different MacTemplate values: "0" might show all, "2","3" might show different pages/sets
-        var templateValues = new[] { "0", "1", "2", "3", "4", "5" };
-
-        foreach (var template in templateValues)
-        {
-            try
-            {
-                _logger.LogInformation("[Standings] Trying MacTemplate={template} for more game results", template);
-
-                var standingsRaw = await PostStepRawAsync(
-                    client, cookie, viewState, viewStateGen,
-                    eventTarget: "ctl00$icerik$GvTemplate_1$ctl04$lnkSubmit",
-                    extraFields: BuildCompetitionFields(
-                        request.SeasonId,
-                        request.Category,
-                        request.LeagueCode,
-                        request.CompetitionName,
-                        template));
-
-                var html = ExtractUpdatePanelHtml(standingsRaw);
-                var games = ParseGameResults(html);
-
-                _logger.LogInformation("[Standings] MacTemplate={template} returned {count} games", template, games.Count);
-
-                // Add unique games only
-                foreach (var game in games)
-                {
-                    var gameKey = $"{game.Date}-{game.Time}-{game.HomeTeam}-{game.AwayTeam}";
-                    if (uniqueGames.Add(gameKey))
-                    {
-                        allGames.Add(game);
-                    }
-                }
-
-                // Update ViewState for next iteration (ASP.NET requirement)
-                (viewState, viewStateGen) = ExtractViewState(standingsRaw, viewState, viewStateGen);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "[Standings] Failed to fetch results with MacTemplate={template}", template);
-            }
-        }
-
-        _logger.LogInformation("[Standings] Total unique games found: {count}", allGames.Count);
-        return allGames.OrderBy(g => g.RowNo).ToList();
     }
 
     /// <summary>
@@ -524,7 +465,7 @@ public class StandingsScraperService
     /// </summary>
     private static Dictionary<string, string> BuildCompetitionFields(
         string seasonId, string category, string leagueCode,
-        string competitionName, string macTemplate = "1") =>
+        string competitionName, string gameTemplate = "1") =>
         new()
         {
             ["ctl00$icerik$ddlSil"] = AppConstants.ProvinceId,
@@ -537,7 +478,7 @@ public class StandingsScraperService
             ["ctl00$icerik$HfYGrupid"] = "",  // populated dynamically by site JS
             ["ctl00$icerik$HfYSiteid"] = AppConstants.ProvinceId,
             ["ctl00$icerik$HfYTipid"] = "A", // A = standings + games view
-            ["ctl00$icerik$HfYMacTemplate"] = macTemplate,
+            ["ctl00$icerik$HfYMacTemplate"] = gameTemplate,
         };
 
     // ── Delta response helpers ───────────────────────────────────────────────
