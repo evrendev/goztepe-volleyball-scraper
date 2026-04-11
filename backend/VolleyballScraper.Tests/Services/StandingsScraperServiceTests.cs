@@ -66,7 +66,7 @@ public class StandingsScraperServiceTests
     }
 
     [Fact]
-    public async Task GetCompetitionsAsync_ShouldReturnEmptyList_WhenCacheMissAndHttpFails()
+    public async Task GetCompetitionsAsync_ShouldReturnEmptyList_WhenHttpFails()
     {
         // Arrange
         var request = new CompetitionRequest
@@ -87,9 +87,12 @@ public class StandingsScraperServiceTests
         _httpClientFactoryMock.Setup(x => x.CreateClient("StandingsClient"))
             .Returns(mockHttpClient.Object);
 
-        // Act & Assert
-        var act = async () => await _service.GetCompetitionsAsync(request);
-        await act.Should().ThrowAsync<Exception>();
+        // Act
+        var result = await _service.GetCompetitionsAsync(request);
+
+        // Assert - Service should return empty list on HTTP failure, not throw
+        result.Should().NotBeNull();
+        result.Should().BeEmpty();
     }
 
     [Theory]
