@@ -10,14 +10,14 @@ namespace VolleyballScraper.Tests.Controllers;
 
 public class StandingsControllerTests
 {
-    private readonly Mock<StandingsScraperService> _standingsServiceMock;
-    private readonly Mock<StandingsCacheService> _cacheServiceMock;
+    private readonly Mock<IStandingsScraperService> _standingsServiceMock;
+    private readonly Mock<IStandingsCacheService> _cacheServiceMock;
     private readonly StandingsController _controller;
 
     public StandingsControllerTests()
     {
-        _standingsServiceMock = new Mock<StandingsScraperService>();
-        _cacheServiceMock = new Mock<StandingsCacheService>();
+        _standingsServiceMock = new Mock<IStandingsScraperService>();
+        _cacheServiceMock = new Mock<IStandingsCacheService>();
         _controller = new StandingsController(_standingsServiceMock.Object, _cacheServiceMock.Object);
     }
 

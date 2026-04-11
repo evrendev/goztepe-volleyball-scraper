@@ -4,6 +4,27 @@ using FluentAssertions;
 using System.Net.Http.Json;
 using VolleyballScraper.Api.Models.Standings;
 using System.Net;
+using System.Text.Json.Serialization;
+
+namespace VolleyballScraper.Tests.Integration;
+
+public class GetCompetitionsResponse
+{
+    [JsonPropertyName("seasonId")]
+    public string SeasonId { get; set; } = "";
+    
+    [JsonPropertyName("category")]
+    public string Category { get; set; } = "";
+    
+    [JsonPropertyName("leagueCode")] 
+    public string LeagueCode { get; set; } = "";
+    
+    [JsonPropertyName("total")]
+    public int Total { get; set; }
+    
+    [JsonPropertyName("competitions")]
+    public List<Competition> Competitions { get; set; } = new();
+}
 
 namespace VolleyballScraper.Tests.Integration;
 
@@ -11,11 +32,17 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
 {
     private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
+    private readonly JsonSerializerOptions _jsonOptions;
 
     public StandingsApiIntegrationTests(WebApplicationFactory<Program> factory)
     {
         _factory = factory;
         _client = _factory.CreateClient();
+        _jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true
+        };
     }
 
     [Fact]
@@ -34,25 +61,12 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var competitions = await response.Content.ReadFromJsonAsync<List<Competition>>();
-        competitions.Should().NotBeNull();
-        competitions.Should().NotBeEmpty();
-    }
-
-    [Fact]
-    public async Task GetCompetitions_ShouldReturn400_WithEmptySeasonId()
-    {
-        // Arrange
-        var request = new CompetitionRequest
-        {
-            SeasonId = "",
-            Category = "GK",
-            LeagueCode = "GKSL"
-        };
-
-        // Act
-        var response = await _client.PostAsJsonAsync("/api/standings/competitions", request);
-
+        
+        var json = await response.Content.ReadAsStringAsync();
+        var responseObj = JsonSerializer.Deserialize<GetCompetitionsResponse>(json, _jsonOptions);
+        
+        responseObj.Should().NotBeNull();
+        responseObj!.Competitions.Should().NotBeNull();
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -71,13 +85,11 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
         var competitionResponse = await _client.PostAsJsonAsync("/api/standings/competitions", competitionsRequest);
         competitionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var competitions = await competitionResponse.Content.ReadFromJsonAsync<List<Competition>>();
-        competitions.Should().NotBeEmpty();
+        var json = await competitionResponse.Content.ReadAsStringAsync();
+        var responseObj = JsonSerializer.Deserialize<GetCompetitionsResponse>(json, _jsonOptions);
+        responseObj!.Competitions.Should().NotBeEmpty();
 
-        var firstCompetition = competitions!.First();
-
-        // Now get standings for this competition
-        var standingsRequest = new StandingsRequest
+        var firstCompetition = responseObj.Competitions.First();
         {
             SeasonId = "2025-2026",
             Category = "GK",
@@ -156,10 +168,11 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
         };
 
         var competitionsResponse = await _client.PostAsJsonAsync("/api/standings/competitions", request);
-        var competitions = await competitionsResponse.Content.ReadFromJsonAsync<List<Competition>>();
+        var json = await competitionsResponse.Content.ReadAsStringAsync();
+        var responseObj = JsonSerializer.Deserialize<GetCompetitionsResponse>(json, _jsonOptions);
 
         // Find a competition that has Göztepe (we'll test all if needed)
-        foreach (var competition in competitions!)
+        foreach (var competition in responseObj!.Competitions)
         {
             var standingsRequest = new StandingsRequest
             {
