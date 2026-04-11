@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useStandingsStore } from "@/stores/standings";
-import type { Competition } from "@/types";
 
 const store = useStandingsStore();
 </script>

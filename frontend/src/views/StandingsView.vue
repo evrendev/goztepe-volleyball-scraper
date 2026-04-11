@@ -157,7 +157,8 @@ onMounted(() => {
       <div
         v-if="
           store.goztepeGames.length > 0 &&
-          store.goztepeGames.length < store.standings?.games.length
+          store.standings?.games &&
+          store.goztepeGames.length < store.standings.games.length
         "
         class="space-y-4"
       >
