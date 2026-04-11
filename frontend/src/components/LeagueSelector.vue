@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, watch } from "vue";
-import { useVolleyballStore } from "@/stores/volleyball";
+import { useFixtureStore } from "@/stores/fixture";
 
-const store = useVolleyballStore();
+const store = useFixtureStore();
 
 onMounted(() => {
   // Load leagues for both pages to use
@@ -107,12 +107,12 @@ onMounted(() => {
           @change="
             store.changeLeague(($event.target as HTMLSelectElement).value)
           "
-          :disabled="!store.selectedCategory || !store.filteredLeagues.length"
+          :disabled="!store.selectedCategory || !store.availableLeagues.length"
           class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-goztepe-red disabled:opacity-50"
         >
           <option value="">Lig Seçiniz</option>
           <option
-            v-for="league in store.filteredLeagues"
+            v-for="league in store.availableLeagues"
             :key="league.code"
             :value="league.code"
           >

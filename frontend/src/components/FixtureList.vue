@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useVolleyballStore } from "@/stores/volleyball";
+import { useFixtureStore } from "@/stores/fixture";
 import UnifiedGameCard from "./UnifiedGameCard.vue";
 
-const store = useVolleyballStore();
+const store = useFixtureStore();
 
 const hasUpcoming = computed(() => store.upcomingGames.length > 0);
 const hasRecent = computed(() => store.recentGames.length > 0);
@@ -36,7 +36,7 @@ const hasRecent = computed(() => store.recentGames.length > 0);
 
   <!-- No Selection -->
   <div
-    v-else-if="!store.selectedCompetition"
+    v-else-if="!store.selectedDivision"
     class="text-center py-16 text-gray-300"
   >
     <svg

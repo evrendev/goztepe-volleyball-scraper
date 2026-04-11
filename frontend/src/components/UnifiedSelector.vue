@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, watch, computed } from "vue";
-import { useVolleyballStore } from "@/stores/volleyball";
+import { useFixtureStore } from "@/stores/fixture";
 import { useStandingsStore } from "@/stores/standings";
 
 interface Props {
@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 // Use appropriate store based on mode
-const fixtureStore = useVolleyballStore();
+const fixtureStore = useFixtureStore();
 const standingsStore = useStandingsStore();
 
 const store = computed(() =>
@@ -185,7 +185,7 @@ onMounted(() => {
           :disabled="
             !store.selectedCategory ||
             !(mode === 'fixture'
-              ? store.filteredLeagues?.length
+              ? store.availableLeagues?.length
               : store.availableLeagues?.length)
           "
           class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-goztepe-red disabled:opacity-50"
@@ -193,7 +193,7 @@ onMounted(() => {
           <option value="">Lig Seçiniz</option>
           <option
             v-for="league in mode === 'fixture'
-              ? store.filteredLeagues
+              ? store.availableLeagues
               : store.availableLeagues"
             :key="league.code"
             :value="league.code"

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useVolleyballStore } from "@/stores/volleyball";
+import { useFixtureStore } from "@/stores/fixture";
 import UnifiedSelector from "@/components/UnifiedSelector.vue";
 import FixtureList from "@/components/FixtureList.vue";
 import CacheManager from "@/components/CacheManager.vue";
 
-const store = useVolleyballStore();
+const store = useFixtureStore();
 
 onMounted(() => {
   store.fetchLeagues();

@@ -51,9 +51,7 @@ export const useStandingsStore = defineStore("standings", () => {
 
   const goztepeGames = computed(() => {
     if (!standings.value?.hasGoztepe) return [];
-    return standings.value.games.filter(
-      (g) => g.isGoztepeHome || g.isGoztepeAway,
-    );
+    return standings.value.games.filter((g) => g.isGoztepe);
   });
 
   async function fetchLeagues() {
