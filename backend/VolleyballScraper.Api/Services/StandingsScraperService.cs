@@ -2,7 +2,7 @@ using HtmlAgilityPack;
 
 namespace VolleyballScraper.Api.Services;
 
-public class StandingsScraperService
+public class StandingsScraperService : IStandingsScraperService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<StandingsScraperService> _logger;

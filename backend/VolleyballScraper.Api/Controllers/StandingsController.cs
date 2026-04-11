@@ -11,10 +11,10 @@ namespace VolleyballScraper.Api.Controllers;
 [Produces("application/json")]
 public class StandingsController : ControllerBase
 {
-    private readonly StandingsScraperService _scraper;
-    private readonly StandingsCacheService _cache;
+    private readonly IStandingsScraperService _scraper;
+    private readonly IStandingsCacheService _cache;
 
-    public StandingsController(StandingsScraperService scraper, StandingsCacheService cache)
+    public StandingsController(IStandingsScraperService scraper, IStandingsCacheService cache)
     {
         _scraper = scraper;
         _cache = cache;

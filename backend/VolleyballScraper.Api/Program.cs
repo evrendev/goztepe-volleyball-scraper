@@ -65,8 +65,8 @@ builder.Services.AddHttpClient("StandingsClient", client =>
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<FixtureCacheService>();
 builder.Services.AddScoped<FixtureScraperService>();
-builder.Services.AddSingleton<StandingsCacheService>();
-builder.Services.AddScoped<StandingsScraperService>();
+builder.Services.AddSingleton<IStandingsCacheService, StandingsCacheService>();
+builder.Services.AddScoped<IStandingsScraperService, StandingsScraperService>();
 
 builder.Services.AddCors(options =>
 {

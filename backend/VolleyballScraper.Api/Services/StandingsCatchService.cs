@@ -2,7 +2,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace VolleyballScraper.Api.Services;
 
-public class StandingsCacheService
+public class StandingsCacheService : IStandingsCacheService
 {
     private readonly IMemoryCache _cache;
     private readonly ILogger<StandingsCacheService> _logger;
