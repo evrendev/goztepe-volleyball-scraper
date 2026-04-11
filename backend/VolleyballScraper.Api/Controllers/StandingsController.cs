@@ -43,6 +43,9 @@ public class StandingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetCompetitions([FromBody] CompetitionRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.SeasonId))
+            return BadRequest(new { message = "SeasonId is required." });
+
         if (string.IsNullOrWhiteSpace(request.Category))
             return BadRequest(new { message = "Category is required." });
 
