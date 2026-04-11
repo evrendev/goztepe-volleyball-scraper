@@ -75,16 +75,16 @@ function formatSetRatio(setsWon: number, setsLost: number): string {
             :key="team.rank"
             :class="[
               'border-b border-gray-50 hover:bg-gray-25 transition-colors',
-              team.isGoztepe 
-                ? 'bg-goztepe-red hover:bg-red-600 text-white' 
-                : ''
+              team.isGoztepe
+                ? 'bg-goztepe-red hover:bg-red-600 text-white'
+                : '',
             ]"
           >
             <td class="py-3 px-4">
-              <span 
+              <span
                 :class="[
                   'text-sm font-medium',
-                  team.isGoztepe ? 'text-white' : 'text-gray-900'
+                  team.isGoztepe ? 'text-white' : 'text-gray-900',
                 ]"
               >
                 {{ team.rank }}
@@ -99,33 +99,45 @@ function formatSetRatio(setsWon: number, setsLost: number): string {
                   class="w-6 h-6 rounded-full object-contain flex-shrink-0"
                   @error="$event.target.style.display = 'none'"
                 />
-                <span 
+                <span
                   :class="[
                     'font-medium',
-                    team.isGoztepe ? 'text-white font-bold' : 'text-gray-900'
+                    team.isGoztepe ? 'text-white font-bold' : 'text-gray-900',
                   ]"
                 >
                   {{ team.teamName }}
                 </span>
               </div>
             </td>
-            <td class="py-3 px-4 text-center" :class="team.isGoztepe ? 'text-white' : 'text-gray-600'">
+            <td
+              class="py-3 px-4 text-center"
+              :class="team.isGoztepe ? 'text-white' : 'text-gray-600'"
+            >
               {{ team.played }}
             </td>
-            <td class="py-3 px-4 text-center" :class="team.isGoztepe ? 'text-white' : 'text-gray-600'">
+            <td
+              class="py-3 px-4 text-center"
+              :class="team.isGoztepe ? 'text-white' : 'text-gray-600'"
+            >
               {{ team.won }}
             </td>
-            <td class="py-3 px-4 text-center" :class="team.isGoztepe ? 'text-white' : 'text-gray-600'">
+            <td
+              class="py-3 px-4 text-center"
+              :class="team.isGoztepe ? 'text-white' : 'text-gray-600'"
+            >
               {{ team.lost }}
             </td>
-            <td class="py-3 px-4 text-center" :class="team.isGoztepe ? 'text-white' : 'text-gray-600'">
+            <td
+              class="py-3 px-4 text-center"
+              :class="team.isGoztepe ? 'text-white' : 'text-gray-600'"
+            >
               {{ formatSetRatio(team.setsWon, team.setsLost) }}
             </td>
             <td class="py-3 px-4 text-center">
-              <span 
+              <span
                 :class="[
                   'font-medium',
-                  team.isGoztepe ? 'text-white font-bold' : 'text-gray-900'
+                  team.isGoztepe ? 'text-white font-bold' : 'text-gray-900',
                 ]"
               >
                 {{ team.points }}

@@ -15,24 +15,29 @@ function isPlayed(data: Game | GameResult): boolean {
 }
 
 function isGameResult(data: Game | GameResult): data is GameResult {
-  return 'homeScore' in data || 'isPlayed' in data;
+  return "homeScore" in data || "isPlayed" in data;
 }
 
 function isGoztepeTeam(teamName: string, data: Game | GameResult): boolean {
   if (isGameResult(data)) {
     // For GameResult, check if it's a Göztepe game
-    return data.isGoztepe && (teamName === data.homeTeam || teamName === data.awayTeam);
+    return (
+      data.isGoztepe &&
+      (teamName === data.homeTeam || teamName === data.awayTeam)
+    );
   }
   // Game case - check team name
-  return teamName.toLowerCase().includes('göztepe');
+  return teamName.toLowerCase().includes("göztepe");
 }
 
 function hasGoztepeInGame(data: Game | GameResult): boolean {
   if (isGameResult(data)) {
     return data.isGoztepe;
   }
-  return data.homeTeam.toLowerCase().includes('göztepe') || 
-         data.awayTeam.toLowerCase().includes('göztepe');
+  return (
+    data.homeTeam.toLowerCase().includes("göztepe") ||
+    data.awayTeam.toLowerCase().includes("göztepe")
+  );
 }
 
 function getScoreDisplay(data: Game | GameResult): string {
@@ -46,14 +51,14 @@ function getScoreDisplay(data: Game | GameResult): string {
 }
 
 function getGroupInfo(data: Game | GameResult): string | null {
-  if ('group' in data) {
+  if ("group" in data) {
     return data.group;
   }
   return null;
 }
 
 function getVenueInfo(data: Game | GameResult): string | null {
-  if ('venue' in data) {
+  if ("venue" in data) {
     return data.venue;
   }
   return null;
@@ -74,7 +79,7 @@ function getSetResults(data: Game | GameResult): string | null {
       isPlayed(gameData)
         ? 'bg-gray-50 border-gray-200'
         : 'bg-white border-gray-100',
-      hasGoztepeInGame(gameData) ? 'border-l-4 border-l-goztepe-red' : ''
+      hasGoztepeInGame(gameData) ? 'border-l-4 border-l-goztepe-red' : '',
     ]"
   >
     <div class="flex items-center justify-between gap-4">
@@ -101,7 +106,7 @@ function getSetResults(data: Game | GameResult): string | null {
         <div class="text-xs text-gray-600 font-medium">
           {{ gameData.date }} {{ gameData.time }}
         </div>
-        
+
         <!-- Score -->
         <div class="px-2">
           <span
@@ -117,7 +122,7 @@ function getSetResults(data: Game | GameResult): string | null {
             vs
           </span>
         </div>
-        
+
         <!-- Set results below (only for played games) -->
         <div v-if="getSetResults(gameData)" class="text-xs text-gray-400">
           {{ getSetResults(gameData) }}
@@ -136,7 +141,10 @@ function getSetResults(data: Game | GameResult): string | null {
         >
           {{ gameData.awayTeam }}
         </div>
-        <div v-if="getVenueInfo(gameData)" class="text-xs text-gray-500 mt-1 truncate">
+        <div
+          v-if="getVenueInfo(gameData)"
+          class="text-xs text-gray-500 mt-1 truncate"
+        >
           {{ getVenueInfo(gameData) }}
         </div>
       </div>

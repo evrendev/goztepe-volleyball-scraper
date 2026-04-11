@@ -159,7 +159,11 @@ const hasRecent = computed(() => store.recentGames.length > 0);
       </div>
 
       <div class="space-y-3">
-        <UnifiedGameCard v-for="(game, i) in store.games" :key="i" :game-data="game" />
+        <UnifiedGameCard
+          v-for="(game, i) in store.games"
+          :key="i"
+          :game-data="game"
+        />
       </div>
     </div>
   </div>
