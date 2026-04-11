@@ -10,5 +10,7 @@ public interface IStandingsCacheService
     bool TryGetStandings(string key, out StandingsResponse standings);
     void SetCompetitions(string key, List<Competition> competitions);
     void SetStandings(string key, StandingsResponse standings);
+    void Clear(string? seasonId = null);
     void ClearCache();
+    List<string> GetCachedKeys();
 }

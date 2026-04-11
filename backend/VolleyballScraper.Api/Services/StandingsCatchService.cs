@@ -112,6 +112,8 @@ public class StandingsCacheService : IStandingsCacheService
         _logger.LogInformation("Standings cache cleared: {count} keys removed", toRemove.Count);
     }
 
+    public void ClearCache() => Clear();
+
     public List<string> GetCachedKeys()
     {
         lock (_keyLock) return [.. _trackedKeys];
