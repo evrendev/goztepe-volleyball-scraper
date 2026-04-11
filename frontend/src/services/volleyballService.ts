@@ -98,6 +98,3 @@ export const standingsService = {
     return request<void>(url, { method: "DELETE" });
   },
 };
-
-// Backward compatibility
-export const volleyballService = fixtureService;
