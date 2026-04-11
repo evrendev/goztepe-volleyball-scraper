@@ -25,7 +25,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
         var request = new CompetitionRequest
         {
             SeasonId = "2025-2026",
-            Category = "GK", 
+            Category = "GK",
             LeagueCode = "GKSL"
         };
 
@@ -70,7 +70,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
 
         var competitionResponse = await _client.PostAsJsonAsync("/api/standings/competitions", competitionsRequest);
         competitionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var competitions = await competitionResponse.Content.ReadFromJsonAsync<List<Competition>>();
         competitions.Should().NotBeEmpty();
 
@@ -79,7 +79,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
         // Now get standings for this competition
         var standingsRequest = new StandingsRequest
         {
-            SeasonId = "2025-2026", 
+            SeasonId = "2025-2026",
             Category = "GK",
             LeagueCode = "GKSL",
             CompetitionName = firstCompetition.Name
@@ -103,7 +103,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
         var request = new StandingsRequest
         {
             SeasonId = "2025-2026",
-            Category = "GK", 
+            Category = "GK",
             LeagueCode = "GKSL",
             CompetitionName = "invalid-competition"
         };
@@ -164,18 +164,18 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
             var standingsRequest = new StandingsRequest
             {
                 SeasonId = "2025-2026",
-                Category = "GK", 
+                Category = "GK",
                 LeagueCode = "GKSL",
                 CompetitionName = competition.Name
             };
 
             // Act
             var standingsResponse = await _client.PostAsJsonAsync("/api/standings", standingsRequest);
-            
+
             if (standingsResponse.StatusCode == HttpStatusCode.OK)
             {
                 var standings = await standingsResponse.Content.ReadFromJsonAsync<StandingsResponse>();
-                
+
                 if (standings!.HasGoztepe)
                 {
                     // Assert - Found Göztepe data
@@ -185,7 +185,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
                 }
             }
         }
-        
+
         // No Göztepe found - this might be expected depending on season
         Assert.True(true, "No competitions with Göztepe found - this might be expected");
     }
