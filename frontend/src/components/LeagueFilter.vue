@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useVolleyballStore } from "@/stores/volleyball";
+import { useFixtureStore } from "@/stores/fixture";
 
-const store = useVolleyballStore();
+const store = useFixtureStore();
 </script>
 
 <template>

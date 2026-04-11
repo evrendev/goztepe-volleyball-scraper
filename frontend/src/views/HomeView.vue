@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useVolleyballStore } from "@/stores/volleyball";
+import { useFixtureStore } from "@/stores/fixture";
 import LeagueFilter from "@/components/LeagueFilter.vue";
 import GameList from "@/components/GameList.vue";
 import CacheManager from "@/components/CacheManager.vue";
 
-const store = useVolleyballStore();
+const store = useFixtureStore();
 
 onMounted(() => {
   store.fetchLeagues();
@@ -142,20 +142,20 @@ onMounted(() => {
 
       <!-- Summary -->
       <div
-        v-if="store.games.length > 0"
+        v-if="store.games?.length > 0"
         class="flex items-center gap-2 text-xs text-gray-400 px-1"
       >
         <span
           >Toplam
           <strong class="text-gray-600">{{
-            store.filteredGames.length
+            store.filteredGames?.length || 0
           }}</strong>
           maç</span
         >
-        <span v-if="store.selectedLeagueCodes.length">
+        <span v-if="store.selectedLeagueCodes?.length">
           ·
           <strong class="text-gray-600">{{
-            store.selectedLeagueCodes.length
+            store.selectedLeagueCodes?.length || 0
           }}</strong>
           lig seçili
         </span>
