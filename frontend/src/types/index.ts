@@ -74,13 +74,25 @@ export interface CompetitionsResponse {
 }
 
 export interface StandingsRow {
-  position: number;
+  rank: number;
   teamName: string;
+  logoUrl: string;
   played: number;
   won: number;
   lost: number;
-  sets: string;
-  points: string;
+  setsWon: number;
+  setsLost: number;
+  points: number;
+  setAverage: string;
+  pointsWon: number;
+  pointsLost: number;
+  pointAverage: number;
+  w30: number;
+  w31: number;
+  w32: number;
+  l23: number;
+  l13: number;
+  l03: number;
   isGoztepe: boolean;
 }
 
@@ -88,12 +100,14 @@ export interface GameResult {
   rowNo: number;
   date: string;
   time: string;
+  venue: string;
   homeTeam: string;
   awayTeam: string;
-  score: string;
-  result: string;
-  isGoztepeHome: boolean;
-  isGoztepeAway: boolean;
+  homeScore: number;
+  awayScore: number;
+  setResults: string;
+  isPlayed: boolean;
+  isGoztepe: boolean;
 }
 
 export interface StandingsRequest {

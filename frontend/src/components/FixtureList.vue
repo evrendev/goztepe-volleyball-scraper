@@ -1,26 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useVolleyballStore } from "@/stores/volleyball";
-import GameCard from "./GameCard.vue";
+import UnifiedGameCard from "./UnifiedGameCard.vue";
 
 const store = useVolleyballStore();
-
-function formatDate(dateStr: string) {
-  if (!dateStr) return "";
-  // DD.MM.YYYY formatından okunabilir formata
-  const [day, month, year] = dateStr.split(".");
-  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  return date.toLocaleDateString("tr-TR", {
-    day: "numeric",
-    month: "long",
-    weekday: "short",
-  });
-}
-
-function formatTime(timeStr: string) {
-  if (!timeStr) return "";
-  return timeStr;
-}
 
 const hasUpcoming = computed(() => store.upcomingGames.length > 0);
 const hasRecent = computed(() => store.recentGames.length > 0);
@@ -109,57 +92,11 @@ const hasRecent = computed(() => store.recentGames.length > 0);
       </div>
 
       <div class="space-y-4 mb-8">
-        <div
+        <UnifiedGameCard
           v-for="(game, index) in store.upcomingGames.slice(0, 8)"
           :key="`upcoming-${index}`"
-          class="p-4 rounded-lg border bg-white border-gray-100"
-        >
-          <div class="flex items-center justify-between">
-            <div class="flex-1">
-              <div class="flex items-center gap-4 mb-2">
-                <div class="text-sm min-w-0 text-gray-600">
-                  {{ formatDate(game.date) }}
-                </div>
-                <div class="text-sm min-w-0 text-gray-400">
-                  {{ formatTime(game.time) }}
-                </div>
-                <div v-if="game.group" class="text-xs text-gray-500">
-                  Grup {{ game.group }}
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span
-                  :class="[
-                    'font-medium',
-                    game.homeTeam?.includes('Göztepe')
-                      ? 'font-bold text-goztepe-red'
-                      : 'text-gray-900',
-                  ]"
-                >
-                  {{ game.homeTeam }}
-                </span>
-                <span class="text-gray-400">vs</span>
-                <span
-                  :class="[
-                    'font-medium',
-                    game.awayTeam?.includes('Göztepe')
-                      ? 'font-bold text-goztepe-red'
-                      : 'text-gray-900',
-                  ]"
-                >
-                  {{ game.awayTeam }}
-                </span>
-              </div>
-            </div>
-
-            <div
-              v-if="game.venue"
-              class="text-sm text-gray-400 text-right ml-4 max-w-32"
-            >
-              {{ game.venue }}
-            </div>
-          </div>
-        </div>
+          :game-data="game"
+        />
       </div>
     </div>
 
@@ -186,65 +123,11 @@ const hasRecent = computed(() => store.recentGames.length > 0);
       </div>
 
       <div class="space-y-4 mb-8">
-        <div
+        <UnifiedGameCard
           v-for="(game, index) in store.recentGames.slice(0, 8)"
           :key="`recent-${index}`"
-          class="p-4 rounded-lg border bg-white border-gray-100"
-        >
-          <div class="flex items-center justify-between">
-            <div class="flex-1">
-              <div class="flex items-center gap-4 mb-2">
-                <div class="text-sm min-w-0 text-gray-600">
-                  {{ formatDate(game.date) }}
-                </div>
-                <div class="text-sm min-w-0 text-gray-400">
-                  {{ formatTime(game.time) }}
-                </div>
-                <div v-if="game.group" class="text-xs text-gray-500">
-                  Grup {{ game.group }}
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span
-                  :class="[
-                    'font-medium',
-                    game.homeTeam?.includes('Göztepe')
-                      ? 'font-bold text-goztepe-red'
-                      : 'text-gray-900',
-                  ]"
-                >
-                  {{ game.homeTeam }}
-                </span>
-                <span class="text-gray-400">-</span>
-                <span
-                  :class="[
-                    'font-medium',
-                    game.awayTeam?.includes('Göztepe')
-                      ? 'font-bold text-goztepe-red'
-                      : 'text-gray-900',
-                  ]"
-                >
-                  {{ game.awayTeam }}
-                </span>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-3">
-              <div
-                v-if="game.score"
-                class="text-sm font-mono text-gray-700 bg-gray-200 px-3 py-1 rounded-md font-semibold"
-              >
-                {{ game.score }}
-              </div>
-              <div
-                v-if="game.venue"
-                class="text-sm text-gray-400 text-right ml-4 max-w-32"
-              >
-                {{ game.venue }}
-              </div>
-            </div>
-          </div>
-        </div>
+          :game-data="game"
+        />
       </div>
     </div>
 
@@ -276,7 +159,7 @@ const hasRecent = computed(() => store.recentGames.length > 0);
       </div>
 
       <div class="space-y-3">
-        <GameCard v-for="(game, i) in store.games" :key="i" :game="game" />
+        <UnifiedGameCard v-for="(game, i) in store.games" :key="i" :game-data="game" />
       </div>
     </div>
   </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { GameResult } from "@/types";
+import UnifiedGameCard from "./UnifiedGameCard.vue";
 
 interface Props {
   games: GameResult[];
@@ -7,16 +8,6 @@ interface Props {
 }
 
 const { games, loading = false } = defineProps<Props>();
-
-function formatDate(dateStr: string) {
-  if (!dateStr) return "";
-  // Assume the date is in DD.MM.YYYY format from backend
-  const [day, month, year] = dateStr.split(".");
-  if (day && month && year) {
-    return `${day}/${month}/${year}`;
-  }
-  return dateStr;
-}
 </script>
 
 <template>
@@ -58,57 +49,11 @@ function formatDate(dateStr: string) {
     </div>
 
     <div v-else class="space-y-3 p-4">
-      <div
+      <UnifiedGameCard
         v-for="game in games"
         :key="game.rowNo"
-        :class="[
-          'rounded-lg border p-3 transition-shadow hover:shadow-md',
-          'bg-white border-gray-100',
-          game.isGoztepeHome || game.isGoztepeAway ? 'border-l-4 border-l-goztepe-red' : ''
-        ]"
-      >
-        <div class="flex items-center justify-between gap-4">
-          <!-- Far Left: Home Team -->
-          <div class="flex-1 text-left">
-            <div
-              :class="[
-                'text-sm font-semibold',
-                game.isGoztepeHome ? 'text-goztepe-red font-bold' : 'text-gray-800',
-              ]"
-            >
-              {{ game.homeTeam }}
-            </div>
-          </div>
-
-          <!-- Center: Date, Score, Time -->
-          <div class="text-center space-y-1 min-w-20">
-            <!-- Date above -->
-            <div class="text-xs text-gray-600 font-medium">{{ formatDate(game.date) }}</div>
-            
-            <!-- Score -->
-            <div class="px-2">
-              <span class="text-xs font-bold text-gray-700 tracking-widest bg-gray-200 px-2 py-1 rounded">
-                {{ game.score || "-" }}
-              </span>
-            </div>
-            
-            <!-- Time below -->
-            <div class="text-xs text-gray-400">{{ game.time || "-" }}</div>
-          </div>
-
-          <!-- Far Right: Away Team -->
-          <div class="flex-1 text-right">
-            <div
-              :class="[
-                'text-sm font-semibold',
-                game.isGoztepeAway ? 'text-goztepe-red font-bold' : 'text-gray-800',
-              ]"
-            >
-              {{ game.awayTeam }}
-            </div>
-          </div>
-        </div>
-      </div>
+        :game-data="game"
+      />
     </div>
   </div>
 </template>
