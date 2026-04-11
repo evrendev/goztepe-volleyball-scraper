@@ -268,8 +268,7 @@ public class StandingsScraperService
 
         // Match results table uses a different template — find by "Set Sonuçları" header
         var table = doc.DocumentNode
-            .SelectNodes("//table")
-            ?.FirstOrDefault(t => t.InnerHtml.Contains("Set Sonuçları"));
+            .SelectSingleNode("//table[@id='icerik_gvmusabakaliste']");
 
         if (table == null) return [];
 
