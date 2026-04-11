@@ -33,43 +33,51 @@ public class StandingsScraperService : IStandingsScraperService
         if (_cache.TryGetCompetitions(cacheKey, out var cached))
             return cached;
 
-        var client = _httpClientFactory.CreateClient("StandingsClient");
+        try
+        {
+            var client = _httpClientFactory.CreateClient("StandingsClient");
 
-        var (viewState, viewStateGen, cookie) = await GetViewStateAsync(client);
-        _logger.LogInformation("[Standings] VIEWSTATE retrieved for competitions.");
+            var (viewState, viewStateGen, cookie) = await GetViewStateAsync(client);
+            _logger.LogInformation("[Standings] VIEWSTATE retrieved for competitions.");
 
-        // Step 1: Select season
-        (viewState, viewStateGen) = await PostStepAsync(
-            client, cookie, viewState, viewStateGen,
-            eventTarget: "ctl00$icerik$ddlSil",
-            extraFields: BuildBaseFields(request.SeasonId, "0", "0"));
+            // Step 1: Select season
+            (viewState, viewStateGen) = await PostStepAsync(
+                client, cookie, viewState, viewStateGen,
+                eventTarget: "ctl00$icerik$ddlSil",
+                extraFields: BuildBaseFields(request.SeasonId, "0", "0"));
 
-        // Step 2: Select gender → populates category dropdown
-        (viewState, viewStateGen) = await PostStepAsync(
-            client, cookie, viewState, viewStateGen,
-            eventTarget: "ctl00$icerik$ddlsbe",
-            extraFields: BuildBaseFields(request.SeasonId, "0", "0"));
+            // Step 2: Select gender → populates category dropdown
+            (viewState, viewStateGen) = await PostStepAsync(
+                client, cookie, viewState, viewStateGen,
+                eventTarget: "ctl00$icerik$ddlsbe",
+                extraFields: BuildBaseFields(request.SeasonId, "0", "0"));
 
-        // Step 3: Select category → populates league dropdown
-        (viewState, viewStateGen) = await PostStepAsync(
-            client, cookie, viewState, viewStateGen,
-            eventTarget: "ctl00$icerik$ddlSkategori",
-            extraFields: BuildBaseFields(request.SeasonId, request.Category, "0"));
+            // Step 3: Select category → populates league dropdown
+            (viewState, viewStateGen) = await PostStepAsync(
+                client, cookie, viewState, viewStateGen,
+                eventTarget: "ctl00$icerik$ddlSkategori",
+                extraFields: BuildBaseFields(request.SeasonId, request.Category, "0"));
 
-        // Step 4: Select league → populates competition (yarışma adı) dropdown
-        var leagueRaw = await PostStepRawAsync(
-            client, cookie, viewState, viewStateGen,
-            eventTarget: "ctl00$icerik$ddlskume",
-            extraFields: BuildBaseFields(request.SeasonId, request.Category, request.LeagueCode));
+            // Step 4: Select league → populates competition (yarışma adı) dropdown
+            var leagueRaw = await PostStepRawAsync(
+                client, cookie, viewState, viewStateGen,
+                eventTarget: "ctl00$icerik$ddlskume",
+                extraFields: BuildBaseFields(request.SeasonId, request.Category, request.LeagueCode));
 
-        var competitions = ParseCompetitionDropdown(leagueRaw, request);
+            var competitions = ParseCompetitionDropdown(leagueRaw, request);
 
-        _logger.LogInformation(
-            "[Standings] Found {count} competitions for {league}.",
-            competitions.Count, request.LeagueCode);
+            _logger.LogInformation(
+                "[Standings] Found {count} competitions for {league}.",
+                competitions.Count, request.LeagueCode);
 
-        _cache.SetCompetitions(cacheKey, competitions);
-        return competitions;
+            _cache.SetCompetitions(cacheKey, competitions);
+            return competitions;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[Standings] Failed to get competitions for {league}, returning empty list", request.LeagueCode);
+            return new List<Competition>();
+        }
     }
 
     /// <summary>
