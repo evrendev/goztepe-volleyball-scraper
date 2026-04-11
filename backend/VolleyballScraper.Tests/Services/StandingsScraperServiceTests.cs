@@ -18,7 +18,7 @@ public class StandingsScraperServiceTests
         _httpClientFactoryMock = new Mock<IHttpClientFactory>();
         _loggerMock = new Mock<ILogger<StandingsScraperService>>();
         _cacheMock = new Mock<IStandingsCacheService>();
-            _httpClientFactoryMock.Object,
+        _httpClientFactoryMock.Object,
             _loggerMock.Object,
             _cacheMock.Object);
     }
@@ -107,7 +107,7 @@ public class StandingsScraperServiceTests
         var cacheKey = "test-cache-key";
         _cacheMock.Setup(x => x.BuildCompetitionsKey(request.SeasonId, request.Category, request.LeagueCode))
             .Returns(cacheKey);
-        
+
         _cacheMock.Setup(x => x.TryGetCompetitions(cacheKey, out It.Ref<List<Competition>>.IsAny))
             .Returns(false);
 

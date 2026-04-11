@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using VolleyballScraper.Api.Models.Standings;
 using System.Net;
 using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace VolleyballScraper.Tests.Integration;
 
@@ -12,16 +13,16 @@ public class GetCompetitionsResponse
 {
     [JsonPropertyName("seasonId")]
     public string SeasonId { get; set; } = "";
-    
+
     [JsonPropertyName("category")]
     public string Category { get; set; } = "";
-    
-    [JsonPropertyName("leagueCode")] 
+
+    [JsonPropertyName("leagueCode")]
     public string LeagueCode { get; set; } = "";
-    
+
     [JsonPropertyName("total")]
     public int Total { get; set; }
-    
+
     [JsonPropertyName("competitions")]
     public List<Competition> Competitions { get; set; } = new();
 }
@@ -61,10 +62,10 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var json = await response.Content.ReadAsStringAsync();
         var responseObj = JsonSerializer.Deserialize<GetCompetitionsResponse>(json, _jsonOptions);
-        
+
         responseObj.Should().NotBeNull();
         responseObj!.Competitions.Should().NotBeNull();
         // Assert
@@ -95,7 +96,8 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
             Category = "GK",
             LeagueCode = "GKSL",
             CompetitionName = firstCompetition.Name
-        };
+        }
+        ;
 
         // Act
         var response = await _client.PostAsJsonAsync("/api/standings", standingsRequest);
