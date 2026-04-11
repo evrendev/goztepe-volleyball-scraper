@@ -90,8 +90,15 @@ public class StandingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetStandings([FromBody] StandingsRequest request)
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetStandings([FromBody] StandingsRequest? request)
     {
+        if (request == null)
+            return BadRequest(new { message = "Request body is required." });
+
+        if (string.IsNullOrWhiteSpace(request.SeasonId))
+            return BadRequest(new { message = "SeasonId is required." });
+
         if (string.IsNullOrWhiteSpace(request.Category))
             return BadRequest(new { message = "Category is required." });
 
@@ -101,16 +108,23 @@ public class StandingsController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.CompetitionName))
             return BadRequest(new { message = "CompetitionName is required." });
 
-        var response = await _scraper.GetStandingsAsync(request);
+        try
+        {
+            var response = await _scraper.GetStandingsAsync(request);
 
-        if (response.Standings.Count == 0 && response.Games.Count == 0)
-            return NotFound(new
-            {
-                message = "No standings data found for the specified competition.",
-                competitionName = request.CompetitionName
-            });
+            if (response.Standings.Count == 0 && response.Games.Count == 0)
+                return NotFound(new
+                {
+                    message = "No standings data found for the specified competition.",
+                    competitionName = request.CompetitionName
+                });
 
-        return Ok(response);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while retrieving standings.", error = ex.Message });
+        }
     }
 
     /// <summary>
@@ -224,7 +238,15 @@ public class StandingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult ClearCache([FromQuery] string? seasonId = null)
     {
-        _cache.Clear(seasonId);
+        if (seasonId == null)
+        {
+            _cache.Clear();
+        }
+        else
+        {
+            _cache.Clear(seasonId);
+        }
+        
         return Ok(new
         {
             message = seasonId == null ? "All standings cache cleared" : $"Cache cleared for season {seasonId}",
