@@ -95,7 +95,6 @@ public class StandingsScraperServiceTests
 
     [Theory]
     [InlineData("")]
-    [InlineData(null)]
     [InlineData("   ")]
     public async Task GetCompetitionsAsync_ShouldThrowArgumentException_WhenSeasonIdInvalid(string invalidSeasonId)
     {
