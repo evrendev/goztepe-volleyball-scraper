@@ -53,7 +53,17 @@ public class StandingsControllerTests
         // Assert
         result.Should().BeOfType<OkObjectResult>();
         var okResult = result as OkObjectResult;
-        okResult!.Value.Should().BeEquivalentTo(expectedCompetitions);
+        
+        var expectedResponse = new
+        {
+            seasonId = request.SeasonId,
+            category = request.Category,
+            leagueCode = request.LeagueCode,
+            total = expectedCompetitions.Count,
+            competitions = expectedCompetitions
+        };
+        
+        okResult!.Value.Should().BeEquivalentTo(expectedResponse);
     }
 
     [Fact]

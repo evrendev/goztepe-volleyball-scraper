@@ -18,7 +18,8 @@ public class StandingsScraperServiceTests
         _httpClientFactoryMock = new Mock<IHttpClientFactory>();
         _loggerMock = new Mock<ILogger<StandingsScraperService>>();
         _cacheMock = new Mock<IStandingsCacheService>();
-        _httpClientFactoryMock.Object,
+        _service = new StandingsScraperService(
+            _httpClientFactoryMock.Object,
             _loggerMock.Object,
             _cacheMock.Object);
     }

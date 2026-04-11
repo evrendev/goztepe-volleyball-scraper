@@ -27,8 +27,6 @@ public class GetCompetitionsResponse
     public List<Competition> Competitions { get; set; } = new();
 }
 
-namespace VolleyballScraper.Tests.Integration;
-
 public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
@@ -68,8 +66,6 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
 
         responseObj.Should().NotBeNull();
         responseObj!.Competitions.Should().NotBeNull();
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -91,13 +87,13 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
         responseObj!.Competitions.Should().NotBeEmpty();
 
         var firstCompetition = responseObj.Competitions.First();
+        var standingsRequest = new StandingsRequest
         {
             SeasonId = "2025-2026",
             Category = "GK",
             LeagueCode = "GKSL",
             CompetitionName = firstCompetition.Name
-        }
-        ;
+        };
 
         // Act
         var response = await _client.PostAsJsonAsync("/api/standings", standingsRequest);
