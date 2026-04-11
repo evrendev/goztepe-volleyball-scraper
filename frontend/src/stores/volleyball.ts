@@ -68,7 +68,7 @@ export const useVolleyballStore = defineStore("volleyball", () => {
   }
 
   function selectAllLeagues() {
-    selectedLeagueCodes.value = leagues.value.map(l => l.code);
+    selectedLeagueCodes.value = leagues.value.map((l) => l.code);
   }
 
   function clearLeagueSelection() {

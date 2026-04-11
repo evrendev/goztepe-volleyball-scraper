@@ -6,7 +6,6 @@ import type {
   CompetitionRequest,
   StandingsRequest,
   StandingsResponse,
-  LeagueDefinition,
 } from "@/types";
 
 export const useStandingsStore = defineStore("standings", () => {
