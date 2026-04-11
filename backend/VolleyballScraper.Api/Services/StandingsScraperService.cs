@@ -6,13 +6,13 @@ public class StandingsScraperService : IStandingsScraperService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<StandingsScraperService> _logger;
-    private readonly StandingsCacheService _cache;
+    private readonly IStandingsCacheService _cache;
     private const string BaseUrl = $"{AppConstants.BaseUrl}/PuanDurumu";
 
     public StandingsScraperService(
         IHttpClientFactory httpClientFactory,
         ILogger<StandingsScraperService> logger,
-        StandingsCacheService cache)
+        IStandingsCacheService cache)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;

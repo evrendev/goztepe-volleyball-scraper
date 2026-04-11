@@ -92,15 +92,13 @@ public class StandingsCacheService : IStandingsCacheService
         lock (_keyLock) _trackedKeys.Remove(key);
     }
 
-    public void Clear(string? seasonId = null)
+    public void Clear()
     {
         List<string> toRemove;
 
         lock (_keyLock)
         {
-            toRemove = seasonId == null
-                ? [.. _trackedKeys]
-                : _trackedKeys.Where(k => k.Contains($":{seasonId}:")).ToList();
+            toRemove = [.. _trackedKeys];
         }
 
         foreach (var key in toRemove)
@@ -110,6 +108,24 @@ public class StandingsCacheService : IStandingsCacheService
         }
 
         _logger.LogInformation("Standings cache cleared: {count} keys removed", toRemove.Count);
+    }
+
+    public void Clear(string seasonId)
+    {
+        List<string> toRemove;
+
+        lock (_keyLock)
+        {
+            toRemove = _trackedKeys.Where(k => k.Contains($":{seasonId}:")).ToList();
+        }
+
+        foreach (var key in toRemove)
+        {
+            _cache.Remove(key);
+            lock (_keyLock) _trackedKeys.Remove(key);
+        }
+
+        _logger.LogInformation("Standings cache cleared: {count} keys removed for season {seasonId}", toRemove.Count, seasonId);
     }
 
     public void ClearCache() => Clear();
