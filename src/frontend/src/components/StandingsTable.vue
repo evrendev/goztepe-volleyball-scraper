@@ -97,7 +97,7 @@ function formatSetRatio(setsWon: number, setsLost: number): string {
                   :src="team.logoUrl"
                   :alt="team.teamName + ' logo'"
                   class="w-6 h-6 rounded-full object-contain flex-shrink-0"
-                  @error="$event.target.style.display = 'none'"
+                  @error="($event.target as HTMLImageElement).style.display = 'none'"
                 />
                 <span
                   :class="[
