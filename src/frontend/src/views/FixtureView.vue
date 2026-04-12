@@ -47,7 +47,7 @@ onMounted(() => {
         <!-- Navigation Links -->
         <nav class="flex space-x-4">
           <router-link
-            to="/"
+            to="/fikstur"
             class="px-3 py-2 text-sm font-medium rounded-md bg-goztepe-red text-white"
           >
             Fikstür

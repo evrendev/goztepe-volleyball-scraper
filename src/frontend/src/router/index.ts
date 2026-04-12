@@ -7,7 +7,11 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      name: "home",
+      redirect: "/fikstur",
+    },
+    {
+      path: "/fikstur",
+      name: "fixture",
       component: FixtureView,
     },
     {
