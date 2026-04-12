@@ -47,13 +47,13 @@ onMounted(() => {
         <!-- Navigation Links -->
         <nav class="flex space-x-4">
           <router-link
-            to="/fikstur"
+            :to="{ name: 'fixture' }"
             class="px-3 py-2 text-sm font-medium rounded-md bg-goztepe-red text-white"
           >
             Fikstür
           </router-link>
           <router-link
-            to="/puan-durumu"
+            :to="{ name: 'standings' }"
             class="px-3 py-2 text-sm font-medium rounded-md text-gray-300 hover:text-white hover:bg-goztepe-red transition-colors"
           >
             Puan Durumu

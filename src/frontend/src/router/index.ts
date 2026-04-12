@@ -7,7 +7,8 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      redirect: "/fikstur",
+      name: "home",
+      redirect: { name: "fixture" },
     },
     {
       path: "/fikstur",
@@ -18,6 +19,12 @@ const router = createRouter({
       path: "/puan-durumu",
       name: "standings",
       component: StandingsView,
+    },
+    {
+      // Catch-all route for invalid URLs - redirect to home
+      path: "/:pathMatch(.*)*",
+      name: "not-found",
+      redirect: { name: "home" },
     },
   ],
 });
