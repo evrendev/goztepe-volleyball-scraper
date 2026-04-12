@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { GameResult } from "@/types";
-import UnifiedGameCard from "./UnifiedGameCard.vue";
+import GameCard from "./GameCard.vue";
 
 interface Props {
   games: GameResult[];
@@ -49,11 +49,7 @@ const { games, loading = false } = defineProps<Props>();
     </div>
 
     <div v-else class="space-y-3 p-4">
-      <UnifiedGameCard
-        v-for="game in games"
-        :key="game.rowNo"
-        :game-data="game"
-      />
+      <GameCard v-for="game in games" :key="game.rowNo" :game-data="game" />
     </div>
   </div>
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useFixtureStore } from "@/stores/fixture";
-import UnifiedGameCard from "./UnifiedGameCard.vue";
+import GameCard from "./GameCard.vue";
 
 const store = useFixtureStore();
 
@@ -92,7 +92,7 @@ const hasRecent = computed(() => store.recentGames.length > 0);
       </div>
 
       <div class="space-y-4 mb-8">
-        <UnifiedGameCard
+        <GameCard
           v-for="(game, index) in store.upcomingGames.slice(0, 8)"
           :key="`upcoming-${index}`"
           :game-data="game"
@@ -123,7 +123,7 @@ const hasRecent = computed(() => store.recentGames.length > 0);
       </div>
 
       <div class="space-y-4 mb-8">
-        <UnifiedGameCard
+        <GameCard
           v-for="(game, index) in store.recentGames.slice(0, 8)"
           :key="`recent-${index}`"
           :game-data="game"
@@ -159,11 +159,7 @@ const hasRecent = computed(() => store.recentGames.length > 0);
       </div>
 
       <div class="space-y-3">
-        <UnifiedGameCard
-          v-for="(game, i) in store.games"
-          :key="i"
-          :game-data="game"
-        />
+        <GameCard v-for="(game, i) in store.games" :key="i" :game-data="game" />
       </div>
     </div>
   </div>
