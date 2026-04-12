@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useFixtureStore } from "@/stores/fixture";
-import UnifiedSelector from "@/components/UnifiedSelector.vue";
+import Selector from "@/components/Selector.vue";
 import FixtureList from "@/components/FixtureList.vue";
 import CacheManager from "@/components/CacheManager.vue";
 
@@ -64,7 +64,7 @@ onMounted(() => {
 
     <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
       <!-- Unified Selector -->
-      <UnifiedSelector mode="fixture" />
+      <Selector mode="fixture" />
 
       <!-- Fixture Content -->
       <FixtureList />
