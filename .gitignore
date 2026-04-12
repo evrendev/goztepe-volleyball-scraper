@@ -28,6 +28,9 @@ build/
 bld/
 [Bb]in/
 [Oo]bj/
+
+# Publish directory
+publish/
 [Oo]ut/
 msbuild.log
 msbuild.err

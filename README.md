@@ -51,6 +51,50 @@ npm run dev
 
 The web app will be available at `http://localhost:5173`
 
+## ⚡ Quick Build & Publish
+
+### Automated Build Script
+
+The project includes automated build scripts that test, build, and publish both backend and frontend:
+
+#### For macOS/Linux:
+
+```bash
+# Make script executable (one time only)
+chmod +x publish.sh
+
+# Run the full build process
+./publish.sh
+
+# Or use npm from project root
+npm run publish
+```
+
+#### For Windows:
+
+```powershell
+# Run the PowerShell script
+.\publish.ps1
+
+# Or use npm from project root
+npm run publish:win
+```
+
+### What the Build Script Does:
+
+1. **🧪 Runs Backend Tests** - Ensures code quality
+2. **🔨 Builds Backend** - Creates optimized API build
+3. **🎨 Builds Frontend** - Creates optimized Vue.js build
+4. **📦 Publishes Both** - Copies everything to `./publish/` directory
+
+### Build Output Structure:
+
+```
+publish/
+├── api/           # Backend API (.NET build)
+└── frontend/      # Frontend files (Vue.js build)
+```
+
 ## 📡 API Documentation
 
 ### Base URL

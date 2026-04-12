@@ -1,0 +1,29 @@
+{
+  "name": "goztepe-volleyball-scraper",
+  "version": "1.0.0",
+  "description": "Göztepe Sports Club volleyball team fixtures and standings scraper",
+  "scripts": {
+    "publish": "./publish.sh",
+    "publish:win": "powershell -ExecutionPolicy Bypass -File .\\publish.ps1",
+    "dev:frontend": "cd src/frontend && npm run dev",
+    "dev:backend": "cd src/backend && dotnet run --project VolleyballScraper.Api",
+    "build:frontend": "cd src/frontend && npm run build",
+    "build:backend": "cd src/backend && dotnet build VolleyballScraper.Api",
+    "test:backend": "cd src/backend && dotnet test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/goztepe-volleyball-scraper.git"
+  },
+  "keywords": [
+    "volleyball",
+    "goztepe",
+    "scraper",
+    "sports",
+    "vue",
+    "dotnet",
+    "api"
+  ],
+  "author": "Evren Yeniev",
+  "license": "MIT"
+}
