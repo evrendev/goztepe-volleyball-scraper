@@ -1,18 +1,96 @@
 <script setup lang="ts">
-import { onMounted, watch } from "vue";
+import { onMounted, watch, computed } from "vue";
 import { useFixtureStore } from "@/stores/fixture";
+import { useStandingsStore } from "@/stores/standings";
 
-const store = useFixtureStore();
+interface Props {
+  mode: "fixture" | "standings";
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  mode: "fixture",
+});
+
+// Use appropriate store based on mode
+const fixtureStore = useFixtureStore();
+const standingsStore = useStandingsStore();
+
+const store = computed(() =>
+  props.mode === "fixture" ? fixtureStore : standingsStore,
+);
+
+// Handler for the 4th column selection (Division/Competition)
+function selectFourthColumn(value: string) {
+  if (props.mode === "fixture") {
+    // For fixture: select division
+    fixtureStore.changeDivision(value);
+  } else {
+    // For standings: select competition
+    const competition = standingsStore.competitions.find(
+      (c) => c.name === value,
+    );
+    if (competition) {
+      standingsStore.selectCompetition(competition);
+    }
+  }
+}
+
+// Computed for the 4th column options and config
+const fourthColumnConfig = computed(() => {
+  if (props.mode === "fixture") {
+    return {
+      label: "Küme/Grup",
+      placeholder: "Küme/Grup Seçiniz",
+      options: fixtureStore.availableDivisions,
+      value: fixtureStore.selectedDivision,
+      disabled:
+        !fixtureStore.selectedLeagueCode ||
+        !fixtureStore.availableDivisions.length,
+    };
+  } else {
+    return {
+      label: "Yarışma",
+      placeholder: "Yarışma Seçiniz",
+      options: standingsStore.competitions.map((c) => ({
+        code: c.name,
+        name: c.displayName,
+      })),
+      value: standingsStore.selectedCompetition?.name || "",
+      disabled:
+        !standingsStore.selectedLeagueCode ||
+        !standingsStore.competitions.length,
+    };
+  }
+});
 
 onMounted(() => {
   // Load leagues for both pages to use
-  store.fetchLeagues();
+  store.value.fetchLeagues();
+
   // Watch for category changes and reload leagues
   watch(
-    () => store.selectedCategory,
+    () => store.value.selectedCategory,
     (newCategory) => {
       if (newCategory) {
-        store.fetchLeagues();
+        store.value.fetchLeagues();
+      }
+    },
+  );
+
+  // Watch for league changes and automatically load competitions/divisions
+  watch(
+    () => store.value.selectedLeagueCode,
+    (newLeagueCode) => {
+      if (
+        newLeagueCode &&
+        store.value.selectedSeason &&
+        store.value.selectedCategory
+      ) {
+        if (props.mode === "fixture") {
+          fixtureStore.fetchDivisions();
+        } else {
+          standingsStore.fetchCompetitions();
+        }
       }
     },
   );
@@ -24,7 +102,7 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-        Fixture Seçimi
+        {{ mode === "fixture" ? "Fikstür Seçimi" : "Puan Durumu Seçimi" }}
       </h2>
       <button
         @click="store.resetAll()"
@@ -46,9 +124,6 @@ onMounted(() => {
         Sıfırla
       </button>
     </div>
-
-    <!-- Selection Controls -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4"></div>
 
     <!-- Selection Controls -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
@@ -107,12 +182,19 @@ onMounted(() => {
           @change="
             store.changeLeague(($event.target as HTMLSelectElement).value)
           "
-          :disabled="!store.selectedCategory || !store.availableLeagues.length"
+          :disabled="
+            !store.selectedCategory ||
+            !(mode === 'fixture'
+              ? store.availableLeagues?.length
+              : store.availableLeagues?.length)
+          "
           class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-goztepe-red disabled:opacity-50"
         >
           <option value="">Lig Seçiniz</option>
           <option
-            v-for="league in store.availableLeagues"
+            v-for="league in mode === 'fixture'
+              ? store.availableLeagues
+              : store.availableLeagues"
             :key="league.code"
             :value="league.code"
           >
@@ -121,28 +203,26 @@ onMounted(() => {
         </select>
       </div>
 
-      <!-- Division -->
+      <!-- Fourth Column (Division/Competition) -->
       <div>
-        <label class="block text-xs font-medium text-gray-600 mb-2"
-          >Küme/Grup</label
-        >
+        <label class="block text-xs font-medium text-gray-600 mb-2">{{
+          fourthColumnConfig.label
+        }}</label>
         <select
-          :value="store.selectedDivision"
+          :value="fourthColumnConfig.value"
           @change="
-            store.changeDivision(($event.target as HTMLSelectElement).value)
+            selectFourthColumn(($event.target as HTMLSelectElement).value)
           "
-          :disabled="
-            !store.selectedLeagueCode || !store.availableDivisions.length
-          "
+          :disabled="fourthColumnConfig.disabled"
           class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-goztepe-red disabled:opacity-50"
         >
-          <option value="">Küme/Grup Seçiniz</option>
+          <option value="">{{ fourthColumnConfig.placeholder }}</option>
           <option
-            v-for="division in store.availableDivisions"
-            :key="division.code"
-            :value="division.code"
+            v-for="option in fourthColumnConfig.options"
+            :key="option.code"
+            :value="option.code"
           >
-            {{ division.name }}
+            {{ option.name }}
           </option>
         </select>
       </div>
@@ -168,7 +248,11 @@ onMounted(() => {
           d="M4 12a8 8 0 018-8v8H4z"
         />
       </svg>
-      Fixtures yükleniyor...
+      {{
+        mode === "fixture"
+          ? "Fikstür yükleniyor..."
+          : "Yarışmalar yükleniyor..."
+      }}
     </div>
 
     <!-- Error State -->
