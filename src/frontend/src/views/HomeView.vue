@@ -53,7 +53,7 @@ onMounted(() => {
             Fikstür
           </router-link>
           <router-link
-            to="/standings"
+            to="/puan-durumu"
             class="px-3 py-2 text-sm font-medium rounded-md text-gray-300 hover:text-white hover:bg-goztepe-red transition-colors"
           >
             Puan Durumu

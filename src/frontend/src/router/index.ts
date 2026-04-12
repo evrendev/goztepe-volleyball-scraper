@@ -15,7 +15,7 @@ const router = createRouter({
       component: FixtureView,
     },
     {
-      path: "/standings",
+      path: "/puan-durumu",
       name: "standings",
       component: StandingsView,
     },
