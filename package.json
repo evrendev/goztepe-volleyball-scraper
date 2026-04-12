@@ -8,7 +8,8 @@
     "dev:frontend": "cd src/frontend && npm run dev",
     "dev:backend": "cd src/backend && dotnet run --project VolleyballScraper.Api",
     "build:frontend": "cd src/frontend && npm run build",
-    "build:backend": "cd src/backend && dotnet build VolleyballScraper.Api",
+    "build:backend": "cd src/backend && dotnet publish VolleyballScraper.Api -c Release -o ../../publish",
+    "build": "npm run build:backend && npm run build:frontend",
     "test:backend": "cd src/backend && dotnet test"
   },
   "repository": {

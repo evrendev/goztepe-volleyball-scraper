@@ -9,11 +9,10 @@ Write-Host "=============================================="
 # Clean previous builds
 Write-Host "🧹 Cleaning previous builds..." -ForegroundColor Yellow
 if (Test-Path "publish") { Remove-Item -Recurse -Force "publish/*" }
-if (Test-Path "build") { Remove-Item -Recurse -Force "build" }
 
 # Create directories
-New-Item -ItemType Directory -Force -Path "publish/api" | Out-Null
-New-Item -ItemType Directory -Force -Path "publish/frontend" | Out-Null
+New-Item -ItemType Directory -Force -Path "publish" | Out-Null
+New-Item -ItemType Directory -Force -Path "publish/wwwroot" | Out-Null
 
 Write-Host ""
 Write-Host "🧪 Running Backend Tests..." -ForegroundColor Cyan
@@ -32,7 +31,7 @@ Write-Host ""
 Write-Host "🔨 Building Backend (API)..." -ForegroundColor Cyan
 Write-Host "-----------------------------"
 try {
-    dotnet publish VolleyballScraper.Api -c Release -o "../../publish/api" --no-restore
+    dotnet publish VolleyballScraper.Api -c Release -o "../../publish" --no-restore
     Write-Host "✅ Backend build completed successfully!" -ForegroundColor Green
 }
 catch {
@@ -54,18 +53,17 @@ catch {
     exit 1
 }
 
-# Copy frontend build to publish directory
+# Frontend already built directly to publish/wwwroot via Vite config
 Write-Host ""
-Write-Host "📦 Copying Frontend build..." -ForegroundColor Yellow
+Write-Host "📦 Frontend built directly to wwwroot..." -ForegroundColor Yellow
 Set-Location "../../"
-Copy-Item -Recurse -Force "build/frontend/*" "publish/frontend/"
 
 Write-Host ""
 Write-Host "🎉 Build Process Completed Successfully!" -ForegroundColor Green
 Write-Host "========================================"
 Write-Host ""
 Write-Host "📁 Published files located at:" -ForegroundColor White
-Write-Host "   • API: ./publish/api/" -ForegroundColor White
-Write-Host "   • Frontend: ./publish/frontend/" -ForegroundColor White
+Write-Host "   • API: ./publish/ (root)" -ForegroundColor White
+Write-Host "   • Frontend: ./publish/wwwroot/" -ForegroundColor White
 Write-Host ""
 Write-Host "🚀 Ready for deployment!" -ForegroundColor Green

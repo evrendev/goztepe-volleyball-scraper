@@ -11,11 +11,10 @@ echo "=============================================="
 # Clean previous builds
 echo "🧹 Cleaning previous builds..."
 rm -rf publish/*
-rm -rf build/
 
 # Create directories
-mkdir -p publish/api
-mkdir -p publish/frontend
+mkdir -p publish
+mkdir -p publish/wwwroot
 
 echo ""
 echo "🧪 Running Backend Tests..."
@@ -31,7 +30,7 @@ fi
 echo ""
 echo "🔨 Building Backend (API)..."
 echo "-----------------------------"
-if dotnet publish VolleyballScraper.Api -c Release -o ../../publish/api --no-restore; then
+if dotnet publish VolleyballScraper.Api -c Release -o ../../publish --no-restore; then
     echo "✅ Backend build completed successfully!"
 else
     echo "❌ Backend build failed!"
@@ -49,18 +48,17 @@ else
     exit 1
 fi
 
-# Copy frontend build to publish directory
+# Frontend already built directly to publish/wwwroot via Vite config
 echo ""
-echo "📦 Copying Frontend build..."
+echo "📦 Frontend built directly to wwwroot..."
 cd ../../
-cp -r build/frontend/* publish/frontend/
 
 echo ""
 echo "🎉 Build Process Completed Successfully!"
 echo "========================================"
 echo ""
 echo "📁 Published files located at:"
-echo "   • API: ./publish/api/"
-echo "   • Frontend: ./publish/frontend/"
+echo "   • API: ./publish/ (root)"
+echo "   • Frontend: ./publish/wwwroot/"
 echo ""
 echo "🚀 Ready for deployment!"

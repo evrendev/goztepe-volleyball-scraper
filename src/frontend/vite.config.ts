@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      outDir: "../../publish/frontend",
+      outDir: "../../publish/wwwroot",
     },
     server: {
       port: 3000,
