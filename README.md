@@ -36,7 +36,7 @@ A comprehensive web application that scrapes and displays Göztepe Sports Club v
 ```bash
 cd backend
 dotnet restore
-dotnet run --project VolleyballScraper.Api
+dotnet run --project OlympicScraper.Api
 ```
 
 The API will be available at `http://localhost:5281`
@@ -378,7 +378,7 @@ src/
 ```
 goztepe-volleyball-scraper/
 ├── backend/
-│   └── VolleyballScraper.Api/
+│   └── OlympicScraper.Api/
 │       ├── Controllers/          # API endpoint controllers
 │       │   ├── FixtureController.cs
 │       │   └── StandingsController.cs

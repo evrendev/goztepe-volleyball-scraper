@@ -1,23 +1,26 @@
 {
-  "name": "goztepe-volleyball-scraper",
+  "name": "goztepe-olympic-scraper",
   "version": "1.0.0",
-  "description": "Göztepe Sports Club volleyball team fixtures and standings scraper",
+  "description": "Göztepe Sports Club Olympic branches amateur team fixtures and standings scraper",
   "scripts": {
     "publish": "./publish.sh",
     "publish:win": "powershell -ExecutionPolicy Bypass -File .\\publish.ps1",
     "dev:frontend": "cd src/frontend && npm run dev",
-    "dev:backend": "cd src/backend && dotnet run --project VolleyballScraper.Api",
+    "dev:backend": "cd src/backend && dotnet run --project OlympicScraper.Api",
     "build:frontend": "cd src/frontend && npm run build",
-    "build:backend": "cd src/backend && dotnet publish VolleyballScraper.Api -c Release -o ../../publish",
+    "build:backend": "cd src/backend && dotnet publish OlympicScraper.Api -c Release -o ../../publish",
     "build": "npm run build:backend && npm run build:frontend",
     "test:backend": "cd src/backend && dotnet test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/goztepe-volleyball-scraper.git"
+    "url": "git+https://github.com/yourusername/goztepe-olympic-scraper.git"
   },
   "keywords": [
-    "volleyball",
+    "olympic",
+    "voleyball",
+    "basketball",
+    "handball",
     "goztepe",
     "scraper",
     "sports",

@@ -1,0 +1,6 @@
+@OlympicScraper.Api_HostAddress = https://localhost:5000
+
+GET {{OlympicScraper.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

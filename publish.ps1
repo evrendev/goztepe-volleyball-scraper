@@ -31,7 +31,7 @@ Write-Host ""
 Write-Host "🔨 Building Backend (API)..." -ForegroundColor Cyan
 Write-Host "-----------------------------"
 try {
-    dotnet publish VolleyballScraper.Api -c Release -o "../../publish" --no-restore
+    dotnet publish OlympicScraper.Api -c Release -o "../../publish" --no-restore
     Write-Host "✅ Backend build completed successfully!" -ForegroundColor Green
 }
 catch {

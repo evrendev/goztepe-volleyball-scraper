@@ -30,7 +30,7 @@ fi
 echo ""
 echo "🔨 Building Backend (API)..."
 echo "-----------------------------"
-if dotnet publish VolleyballScraper.Api -c Release -o ../../publish --no-restore; then
+if dotnet publish OlympicScraper.Api -c Release -o ../../publish --no-restore; then
     echo "✅ Backend build completed successfully!"
 else
     echo "❌ Backend build failed!"
