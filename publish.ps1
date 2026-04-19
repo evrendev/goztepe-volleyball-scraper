@@ -1,9 +1,9 @@
-# Göztepe Volleyball Scraper - Build & Publish Script (PowerShell)
+# Göztepe Olympic Scraper - Build & Publish Script (PowerShell)
 # This script builds both frontend and backend and publishes to ./publish directory
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "🏐 Starting Göztepe Volleyball Scraper Build Process..." -ForegroundColor Green
+Write-Host "🏐 Starting Göztepe Olympic Scraper Build Process..." -ForegroundColor Green
 Write-Host "=============================================="
 
 # Clean previous builds
