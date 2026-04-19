@@ -8,7 +8,7 @@ public class FixtureCacheService
     private readonly ILogger<FixtureCacheService> _logger;
 
     // Cache duration — fixtures rarely change
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(AppConstants.FixtureCacheDuration);
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(VolleyballConstants.FixtureCacheDuration);
 
     // Track which keys are in cache (for cleanup)
     private readonly HashSet<string> _trackedKeys = [];

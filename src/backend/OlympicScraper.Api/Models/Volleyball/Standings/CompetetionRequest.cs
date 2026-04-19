@@ -5,7 +5,7 @@ public class CompetitionRequest
 {
     /// <summary>Season identifier.</summary>
     /// <example>2025-2026</example>
-    public string SeasonId { get; set; } = AppConstants.SeasonId;
+    public string SeasonId { get; set; } = VolleyballConstants.SeasonId;
 
     /// <summary>
     /// Category code. Must match a valid category on the federation site.

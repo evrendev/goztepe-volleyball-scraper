@@ -200,7 +200,7 @@ public class FixtureController : ControllerBase
     public IActionResult GetSeasons() =>
         Ok(new
         {
-            defaultSeasonId = AppConstants.SeasonId,
+            defaultSeasonId = VolleyballConstants.SeasonId,
             seasons = new[]
             {
                 new { id = "2025-2026", label = "2025-2026" },

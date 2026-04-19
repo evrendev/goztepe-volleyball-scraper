@@ -5,7 +5,7 @@ public class StandingsRequest
 {
     /// <summary>Season identifier.</summary>
     /// <example>2025-2026</example>
-    public string SeasonId { get; set; } = AppConstants.SeasonId;
+    public string SeasonId { get; set; } = VolleyballConstants.SeasonId;
 
     /// <summary>Category code (e.g. GK, KK, MdK).</summary>
     /// <example>GK</example>

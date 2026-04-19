@@ -45,10 +45,10 @@ builder.Services.AddHttpClient("FixtureClient", client =>
     client.DefaultRequestHeaders.Add("User-Agent",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
     client.DefaultRequestHeaders.Add("Referer",
-        $"{AppConstants.BaseUrl}/Fiksturler");
+        $"{VolleyballConstants.BaseUrl}/Fiksturler");
     client.DefaultRequestHeaders.Add("Accept", "*/*");
-    client.BaseAddress = new Uri(AppConstants.BaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(AppConstants.Timeout);
+    client.BaseAddress = new Uri(VolleyballConstants.BaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(VolleyballConstants.Timeout);
 });
 
 builder.Services.AddHttpClient("StandingsClient", client =>
@@ -56,10 +56,10 @@ builder.Services.AddHttpClient("StandingsClient", client =>
     client.DefaultRequestHeaders.Add("User-Agent",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
     client.DefaultRequestHeaders.Add("Referer",
-        $"{AppConstants.BaseUrl}/PuanDurumu");
+        $"{VolleyballConstants.BaseUrl}/PuanDurumu");
     client.DefaultRequestHeaders.Add("Accept", "*/*");
-    client.BaseAddress = new Uri(AppConstants.BaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(AppConstants.Timeout);
+    client.BaseAddress = new Uri(VolleyballConstants.BaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(VolleyballConstants.Timeout);
 });
 
 builder.Services.AddMemoryCache();

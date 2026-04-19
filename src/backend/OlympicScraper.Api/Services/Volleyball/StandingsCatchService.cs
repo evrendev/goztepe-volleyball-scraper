@@ -9,7 +9,7 @@ public class StandingsCacheService : IStandingsCacheService
 
     // Standings and competition data changes infrequently — cache for 30 days
     private static readonly TimeSpan CacheDuration =
-        TimeSpan.FromHours(AppConstants.StandingsCacheDuration);
+        TimeSpan.FromHours(VolleyballConstants.StandingsCacheDuration);
 
     private readonly HashSet<string> _trackedKeys = [];
     private readonly Lock _keyLock = new();

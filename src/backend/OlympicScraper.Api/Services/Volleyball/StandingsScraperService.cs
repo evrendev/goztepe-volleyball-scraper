@@ -7,7 +7,7 @@ public class StandingsScraperService : IStandingsScraperService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<StandingsScraperService> _logger;
     private readonly IStandingsCacheService _cache;
-    private const string BaseUrl = $"{AppConstants.BaseUrl}/PuanDurumu";
+    private const string BaseUrl = $"{VolleyballConstants.BaseUrl}/PuanDurumu";
 
     public StandingsScraperService(
         IHttpClientFactory httpClientFactory,
@@ -257,7 +257,7 @@ public class StandingsScraperService : IStandingsScraperService
                 L13 = GetSpanInt(doc, $"icerik_GvTemplate_1_gV1_3_{rowIndex}"),
                 L03 = GetSpanInt(doc, $"icerik_GvTemplate_1_gV0_3_{rowIndex}"),
                 IsGoztepe = teamName.Contains(
-                    AppConstants.ClubName, StringComparison.OrdinalIgnoreCase),
+                    VolleyballConstants.ClubName, StringComparison.OrdinalIgnoreCase),
             });
 
             rowIndex++;
@@ -363,8 +363,8 @@ public class StandingsScraperService : IStandingsScraperService
                 SetResults = setResults,
                 IsPlayed = isPlayed,
                 IsGoztepe =
-                    homeTeam.Contains(AppConstants.ClubName, StringComparison.OrdinalIgnoreCase) ||
-                    awayTeam.Contains(AppConstants.ClubName, StringComparison.OrdinalIgnoreCase),
+                    homeTeam.Contains(VolleyballConstants.ClubName, StringComparison.OrdinalIgnoreCase) ||
+                    awayTeam.Contains(VolleyballConstants.ClubName, StringComparison.OrdinalIgnoreCase),
             });
         }
 
@@ -424,7 +424,7 @@ public class StandingsScraperService : IStandingsScraperService
             ["ctl00$ScriptManager1"] = $"ctl00$icerik$UpdatePanel|{eventTarget}",
             ["ctl00$mail"] = "",
             ["ctl00$password"] = "",
-            ["ctl00$icerik$ddlSil"] = AppConstants.ProvinceId,
+            ["ctl00$icerik$ddlSil"] = VolleyballConstants.ProvinceId,
             ["__LASTFOCUS"] = "",
             ["__EVENTTARGET"] = eventTarget,
             ["__EVENTARGUMENT"] = "",
@@ -460,8 +460,8 @@ public class StandingsScraperService : IStandingsScraperService
         string seasonId, string category, string leagueCode) =>
         new()
         {
-            ["ctl00$icerik$ddlSil"] = AppConstants.ProvinceId,
-            ["ctl00$icerik$ddlsbe"] = AppConstants.Gender,
+            ["ctl00$icerik$ddlSil"] = VolleyballConstants.ProvinceId,
+            ["ctl00$icerik$ddlsbe"] = VolleyballConstants.Gender,
             ["ctl00$icerik$ddlSkategori"] = category,
             ["ctl00$icerik$ddlskume"] = leagueCode,
             ["ctl00$icerik$ddlSyarismaadi"] = "0",
@@ -476,15 +476,15 @@ public class StandingsScraperService : IStandingsScraperService
         string competitionName, string gameTemplate = "1") =>
         new()
         {
-            ["ctl00$icerik$ddlSil"] = AppConstants.ProvinceId,
-            ["ctl00$icerik$ddlsbe"] = AppConstants.Gender,
+            ["ctl00$icerik$ddlSil"] = VolleyballConstants.ProvinceId,
+            ["ctl00$icerik$ddlsbe"] = VolleyballConstants.Gender,
             ["ctl00$icerik$ddlSkategori"] = category,
             ["ctl00$icerik$ddlskume"] = leagueCode,
             ["ctl00$icerik$ddlSyarismaadi"] = competitionName,
             ["ctl00$icerik$HfYKategoriid"] = category,
             ["ctl00$icerik$HfYTurid"] = "",  // populated dynamically by site JS
             ["ctl00$icerik$HfYGrupid"] = "",  // populated dynamically by site JS
-            ["ctl00$icerik$HfYSiteid"] = AppConstants.ProvinceId,
+            ["ctl00$icerik$HfYSiteid"] = VolleyballConstants.ProvinceId,
             ["ctl00$icerik$HfYTipid"] = "A", // A = standings + games view
             ["ctl00$icerik$HfYMacTemplate"] = gameTemplate,
         };

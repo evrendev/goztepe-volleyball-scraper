@@ -1,7 +1,7 @@
 namespace OlympicScraper.Api.Constants;
 
 /// <summary>Club and federation constants — single source of truth.</summary>
-public static class AppConstants
+public static class VolleyballConstants
 {
     /// <summary>Göztepe Sports Club organisation ID on the federation site.</summary>
     public const string OrganisationId = "662";
