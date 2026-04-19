@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
-using OlympicScraper.Api.Services;
-using OlympicScraper.Api.Models.Standings;
 
 namespace OlympicScraper.Tests.Services;
 

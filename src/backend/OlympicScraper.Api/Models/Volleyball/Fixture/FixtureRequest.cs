@@ -1,4 +1,4 @@
-namespace OlympicScraper.Api.Models;
+namespace OlympicScraper.Api.Models.Volleyball.Fixture;
 
 /// <summary>Request body for fetching fixture data.</summary>
 public class FixtureRequest

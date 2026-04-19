@@ -1,4 +1,4 @@
-namespace OlympicScraper.Api.Models;
+namespace OlympicScraper.Api.Models.Volleyball.Fixture;
 
 public record LeagueDefinition(
     string Code,

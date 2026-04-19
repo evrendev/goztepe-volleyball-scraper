@@ -7,7 +7,7 @@ namespace OlympicScraper.Api.Controllers;
 /// from İzmir Voleybol İl Temsilciliği.
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/volleyball/[controller]")]
 [Produces("application/json")]
 public class StandingsController : ControllerBase
 {
@@ -194,7 +194,7 @@ public class StandingsController : ControllerBase
                             competition.DisplayName,
                             competition.LeagueCode,
                             competition.Category,
-                            leagueDisplayName = Models.SupportedLeagues
+                            leagueDisplayName = SupportedLeagues
                                 .Find(league.Code)?.DisplayName ?? league.Code,
                             hasGoztepe = true,
                         });

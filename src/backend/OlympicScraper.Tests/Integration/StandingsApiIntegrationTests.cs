@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 using System.Net.Http.Json;
-using OlympicScraper.Api.Models.Standings;
 using System.Net;
 using System.Text.Json.Serialization;
 using System.Text.Json;
@@ -100,7 +98,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var standingsResponse = await response.Content.ReadFromJsonAsync<StandingsResponse>();
+        var standingsResponse = await response.Content.ReadFromJsonAsync<Response>();
         standingsResponse.Should().NotBeNull();
         standingsResponse!.Standings.Should().NotBeNull();
         standingsResponse.Games.Should().NotBeNull();
@@ -185,7 +183,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
 
             if (standingsResponse.StatusCode == HttpStatusCode.OK)
             {
-                var standings = await standingsResponse.Content.ReadFromJsonAsync<StandingsResponse>();
+                var standings = await standingsResponse.Content.ReadFromJsonAsync<Response>();
 
                 if (standings!.HasGoztepe)
                 {

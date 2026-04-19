@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace OlympicScraper.Api.Controllers;
+namespace OlympicScraper.Api.Controllers.Volleyball;
 
 /// <summary>
 /// Endpoints for fetching Göztepe volleyball fixture data.
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/volleyball/[controller]")]
 [Produces("application/json")]
 public class FixtureController : ControllerBase
 {
@@ -57,7 +57,7 @@ public class FixtureController : ControllerBase
     [HttpPost("games")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetGames(
-        [FromBody] FixtureRequest request,
+        [FromBody] Models.Volleyball.Fixture.FixtureRequest request,
         [FromQuery] bool forceRefresh = false)
     {
         var games = await _scraper.GetGamesAsync(request, forceRefresh);

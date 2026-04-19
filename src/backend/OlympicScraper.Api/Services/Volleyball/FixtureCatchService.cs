@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 
-namespace OlympicScraper.Api.Services;
+namespace OlympicScraper.Api.Services.Volleyball;
 
 public class FixtureCacheService
 {

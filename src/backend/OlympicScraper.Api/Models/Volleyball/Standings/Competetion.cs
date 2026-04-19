@@ -1,4 +1,4 @@
-namespace OlympicScraper.Api.Models.Standings;
+namespace OlympicScraper.Api.Models.Volleyball.Standings;
 
 /// <summary>
 /// Represents a competition (yarışma) entry from the standings page dropdown.

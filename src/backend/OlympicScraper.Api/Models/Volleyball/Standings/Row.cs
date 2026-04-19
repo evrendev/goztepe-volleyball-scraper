@@ -1,10 +1,10 @@
-namespace OlympicScraper.Api.Models.Standings;
+namespace OlympicScraper.Api.Models.Volleyball.Standings;
 
 /// <summary>
 /// Represents a single team row in the standings table (puan durumu).
 /// Column mapping matches the federation site table headers.
 /// </summary>
-public class StandingsRow
+public class Row
 {
     /// <summary>Current rank of the team in the standings.</summary>
     /// <example>1</example>

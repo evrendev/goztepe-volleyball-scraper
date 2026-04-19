@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 
-namespace OlympicScraper.Api.Services;
+namespace OlympicScraper.Api.Services.Volleyball;
 
 public class StandingsCacheService : IStandingsCacheService
 {
@@ -42,9 +42,9 @@ public class StandingsCacheService : IStandingsCacheService
         return false;
     }
 
-    public bool TryGetStandings(string key, out StandingsResponse standings)
+    public bool TryGetStandings(string key, out Response standings)
     {
-        if (_cache.TryGetValue(key, out StandingsResponse? cached) && cached != null)
+        if (_cache.TryGetValue(key, out Response? cached) && cached != null)
         {
             _logger.LogInformation("Standings cache HIT: {key}", key);
             standings = cached;
@@ -52,7 +52,7 @@ public class StandingsCacheService : IStandingsCacheService
         }
 
         _logger.LogInformation("Standings cache MISS: {key}", key);
-        standings = new StandingsResponse();
+        standings = new Response();
         return false;
     }
 
@@ -71,7 +71,7 @@ public class StandingsCacheService : IStandingsCacheService
             key, competitions.Count, CacheDuration.TotalHours);
     }
 
-    public void SetStandings(string key, StandingsResponse standings)
+    public void SetStandings(string key, Response standings)
     {
         _cache.Set(key, standings, new MemoryCacheEntryOptions
         {

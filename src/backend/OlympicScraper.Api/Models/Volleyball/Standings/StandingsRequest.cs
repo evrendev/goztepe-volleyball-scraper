@@ -1,4 +1,4 @@
-namespace OlympicScraper.Api.Models.Standings;
+namespace OlympicScraper.Api.Models.Volleyball.Standings;
 
 /// <summary>Request parameters for fetching standings and match results.</summary>
 public class StandingsRequest

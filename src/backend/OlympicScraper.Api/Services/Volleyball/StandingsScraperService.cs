@@ -1,6 +1,6 @@
 using HtmlAgilityPack;
 
-namespace OlympicScraper.Api.Services;
+namespace OlympicScraper.Api.Services.Volleyball;
 
 public class StandingsScraperService : IStandingsScraperService
 {
@@ -83,7 +83,7 @@ public class StandingsScraperService : IStandingsScraperService
     /// <summary>
     /// Fetches the standings table and game results for a specific competition.
     /// </summary>
-    public async Task<StandingsResponse> GetStandingsAsync(StandingsRequest request)
+    public async Task<Response> GetStandingsAsync(StandingsRequest request)
     {
         var cacheKey = _cache.BuildStandingsKey(
             request.SeasonId, request.CompetitionName);
@@ -146,7 +146,7 @@ public class StandingsScraperService : IStandingsScraperService
             "[Standings] Competition {name}: {standingsCount} teams, {gameCount} games, hasGöztepe={has}.",
             request.CompetitionName, standings.Count, games.Count, hasGoztepe);
 
-        var response = new StandingsResponse
+        var response = new Response
         {
             CompetitionName = competitionName,
             SeasonId = request.SeasonId,
@@ -207,12 +207,12 @@ public class StandingsScraperService : IStandingsScraperService
     /// predictable pattern: icerik_GvTemplate_1_{fieldCode}_{rowIndex}
     /// This is more reliable than td index-based parsing.
     /// </summary>
-    private static List<StandingsRow> ParseStandingsTable(string html)
+    private static List<Row> ParseStandingsTable(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
-        var standings = new List<StandingsRow>();
+        var standings = new List<Row>();
         var rowIndex = 0;
 
         while (true)
@@ -235,7 +235,7 @@ public class StandingsScraperService : IStandingsScraperService
                 logoSrc = $"https://izmir.voleyboliltemsilciligi.com/{cleanSrc.TrimStart('/')}";
             }
 
-            standings.Add(new StandingsRow
+            standings.Add(new Row
             {
                 Rank = rowIndex + 1,
                 TeamName = teamName,

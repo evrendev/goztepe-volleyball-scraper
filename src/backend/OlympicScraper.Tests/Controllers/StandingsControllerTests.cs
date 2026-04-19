@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
 using OlympicScraper.Api.Controllers;
-using OlympicScraper.Api.Services;
-using OlympicScraper.Api.Models.Standings;
 
 namespace OlympicScraper.Tests.Controllers;
 
@@ -92,12 +89,12 @@ public class StandingsControllerTests
             CompetitionName = "17345*8FF84B09-1B9E-4C7D-8BF7-F9EC67B4D5E2"
         };
 
-        var expectedResponse = new StandingsResponse
+        var expectedResponse = new Response
         {
             CompetitionName = "Süper Lig Genç Kızlar - B Gr",
             SeasonId = "2025-2026",
             HasGoztepe = true,
-            Standings = new List<StandingsRow>
+            Standings = new List<Row>
             {
                 new()
                 {

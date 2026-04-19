@@ -1,10 +1,10 @@
-namespace OlympicScraper.Api.Models.Standings;
+namespace OlympicScraper.Api.Models.Volleyball.Standings;
 
 /// <summary>
 /// Full standings response for a single competition,
 /// combining the standings table and the match result list.
 /// </summary>
-public class StandingsResponse
+public class Response
 {
     /// <summary>Numeric competition identifier.</summary>
     /// <example>19285</example>
@@ -24,7 +24,7 @@ public class StandingsResponse
     public bool HasGoztepe { get; set; }
 
     /// <summary>Ordered list of team standings rows.</summary>
-    public List<StandingsRow> Standings { get; set; } = [];
+    public List<Row> Standings { get; set; } = [];
 
     /// <summary>
     /// List of all matches in this competition,

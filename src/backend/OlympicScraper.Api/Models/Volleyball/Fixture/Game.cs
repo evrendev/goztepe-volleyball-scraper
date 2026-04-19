@@ -1,4 +1,4 @@
-namespace OlympicScraper.Api.Models;
+namespace OlympicScraper.Api.Models.Volleyball.Fixture;
 
 /// <summary>Represents a single volleyball fixture.</summary>
 public class Game

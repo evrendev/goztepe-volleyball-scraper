@@ -1,6 +1,6 @@
 using HtmlAgilityPack;
 
-namespace OlympicScraper.Api.Services;
+namespace OlympicScraper.Api.Services.Volleyball;
 
 public class FixtureScraperService
 {
@@ -128,7 +128,7 @@ public class FixtureScraperService
         return sb.ToString();
     }
 
-    public async Task<List<Game>> GetGamesAsync(FixtureRequest request,
+    public async Task<List<Game>> GetGamesAsync(Models.Volleyball.Fixture.FixtureRequest request,
                                                  bool forceRefresh = false)
     {
         var targetLeagues = request.Leagues.Count > 0
@@ -183,7 +183,7 @@ public class FixtureScraperService
             .ToList();
     }
     private async Task<List<Game>> FetchLeagueAsync(
-        HttpClient client, FixtureRequest request, LeagueDefinition league)
+        HttpClient client, Models.Volleyball.Fixture.FixtureRequest request, LeagueDefinition league)
     {
         var (viewState, viewStateGen, cookie) = await GetViewStateAsync(client);
         _logger.LogInformation("[{code}] VIEWSTATE retrieved.", league.Code);

@@ -1,4 +1,4 @@
-namespace OlympicScraper.Api.Models.Standings;
+namespace OlympicScraper.Api.Models.Volleyball.Standings;
 
 /// <summary>
 /// Represents a single match result row from the competition match list
