@@ -65,13 +65,13 @@ onMounted(() => {
 
     <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
       <!-- Competition Selector -->
-      <CompetitionSelector />
+      <competition-selector />
 
       <!-- Standings and Results -->
       <div v-if="store.standings" class="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <!-- Standings Table -->
         <div>
-          <StandingsTable
+          <standings-table
             :standings="store.standings.standings"
             :loading="store.loading"
           />
@@ -79,7 +79,7 @@ onMounted(() => {
 
         <!-- Game Results -->
         <div>
-          <GameResults
+          <game-results
             :games="store.standings.games"
             :loading="store.loading"
           />
@@ -88,6 +88,6 @@ onMounted(() => {
     </main>
 
     <!-- Cache Manager -->
-    <CacheManager />
+    <cache-manager />
   </div>
 </template>

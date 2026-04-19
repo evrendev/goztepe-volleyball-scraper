@@ -49,7 +49,7 @@ const { games, loading = false } = defineProps<Props>();
     </div>
 
     <div v-else class="space-y-3 p-4">
-      <GameCard v-for="game in games" :key="game.rowNo" :game-data="game" />
+      <game-card v-for="game in games" :key="game.rowNo" :game-data="game" />
     </div>
   </div>
 </template>

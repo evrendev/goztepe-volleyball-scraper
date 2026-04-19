@@ -1,1 +1,10 @@
-{"compilerOptions":{"baseUrl":"."},"extends":"./tsconfig.json"}
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+}

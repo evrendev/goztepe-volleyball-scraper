@@ -2,6 +2,7 @@
 import { onMounted, watch, computed } from "vue";
 import { useFixtureStore } from "@/stores/volleyball/fixture";
 import { useStandingsStore } from "@/stores/volleyball/standings";
+import { Competition } from "@/types/volleyball";
 
 interface Props {
   mode: "fixture" | "standings";
@@ -27,7 +28,7 @@ function selectFourthColumn(value: string) {
   } else {
     // For standings: select competition
     const competition = standingsStore.competitions.find(
-      (c) => c.name === value,
+      (c: Competition) => c.name === value,
     );
     if (competition) {
       standingsStore.selectCompetition(competition);
@@ -51,7 +52,7 @@ const fourthColumnConfig = computed(() => {
     return {
       label: "Yarışma",
       placeholder: "Yarışma Seçiniz",
-      options: standingsStore.competitions.map((c) => ({
+      options: standingsStore.competitions.map((c: Competition) => ({
         code: c.name,
         name: c.displayName,
       })),

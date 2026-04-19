@@ -82,7 +82,11 @@ const store = useFixtureStore();
         <span class="h-px flex-1 bg-gray-100"></span>
       </h3>
       <div class="space-y-2">
-        <GameCard v-for="(game, i) in leagueGames" :key="i" :gameData="game" />
+        <game-card
+          v-for="(game, i) in leagueGames"
+          :key="i"
+          :game-data="game"
+        />
       </div>
     </div>
   </div>

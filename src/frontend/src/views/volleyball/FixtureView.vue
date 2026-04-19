@@ -64,13 +64,13 @@ onMounted(() => {
 
     <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
       <!-- Unified Selector -->
-      <LeagueSelector mode="fixture" />
+      <league-selector mode="fixture" />
 
       <!-- Fixture Content -->
-      <FixtureList />
+      <fixture-list />
     </main>
 
     <!-- Cache Manager -->
-    <CacheManager />
+    <cache-manager />
   </div>
 </template>

@@ -92,7 +92,7 @@ const hasRecent = computed(() => store.recentGames.length > 0);
       </div>
 
       <div class="space-y-4 mb-8">
-        <GameCard
+        <game-card
           v-for="(game, index) in store.upcomingGames.slice(0, 8)"
           :key="`upcoming-${index}`"
           :game-data="game"
@@ -123,7 +123,7 @@ const hasRecent = computed(() => store.recentGames.length > 0);
       </div>
 
       <div class="space-y-4 mb-8">
-        <GameCard
+        <game-card
           v-for="(game, index) in store.recentGames.slice(0, 8)"
           :key="`recent-${index}`"
           :game-data="game"
@@ -159,7 +159,11 @@ const hasRecent = computed(() => store.recentGames.length > 0);
       </div>
 
       <div class="space-y-3">
-        <GameCard v-for="(game, i) in store.games" :key="i" :game-data="game" />
+        <game-card
+          v-for="(game, i) in store.games"
+          :key="i"
+          :game-data="game"
+        />
       </div>
     </div>
   </div>

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { onMounted, watch } from "vue";
 import { useStandingsStore } from "@/stores/volleyball/standings";
+import { Competition } from "@/types/volleyball";
 
 const store = useStandingsStore();
 
 function selectCompetition(competitionName: string) {
   const competition = store.competitions.find(
-    (c) => c.name === competitionName,
+    (c: Competition) => c.name === competitionName,
   );
   if (competition) {
     store.selectCompetition(competition);

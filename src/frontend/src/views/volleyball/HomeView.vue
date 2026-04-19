@@ -138,7 +138,7 @@ onMounted(() => {
       </div>
 
       <!-- League filter -->
-      <LeagueFilter v-if="store.leagues.length > 0" />
+      <league-filter v-if="store.leagues.length > 0" />
 
       <!-- Summary -->
       <div
@@ -162,10 +162,10 @@ onMounted(() => {
       </div>
 
       <!-- Game list -->
-      <GameList />
+      <game-list />
     </main>
 
     <!-- Cache Manager -->
-    <CacheManager />
+    <cache-manager />
   </div>
 </template>

@@ -8,7 +8,7 @@ import type {
   CompetitionsResponse,
   StandingsRequest,
   StandingsResponse,
-} from "@/types";
+} from "@/types/volleyball";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
