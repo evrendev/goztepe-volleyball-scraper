@@ -54,7 +54,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/standings/competitions", request);
+        var response = await _client.PostAsJsonAsync("/api/volleyball/standings/competitions", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -77,7 +77,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
             LeagueCode = "GKSL"
         };
 
-        var competitionResponse = await _client.PostAsJsonAsync("/api/standings/competitions", competitionsRequest);
+        var competitionResponse = await _client.PostAsJsonAsync("/api/volleyball/standings/competitions", competitionsRequest);
         competitionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var json = await competitionResponse.Content.ReadAsStringAsync();
@@ -94,7 +94,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/standings", standingsRequest);
+        var response = await _client.PostAsJsonAsync("/api/volleyball/standings", standingsRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -117,7 +117,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/standings", request);
+        var response = await _client.PostAsJsonAsync("/api/volleyball/standings", request);
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.NotFound);
@@ -138,7 +138,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/standings/competitions", request);
+        var response = await _client.PostAsJsonAsync("/api/volleyball/standings/competitions", request);
 
         // Assert
         if (string.IsNullOrEmpty(seasonId))
@@ -163,7 +163,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
             LeagueCode = "GKSL"
         };
 
-        var competitionsResponse = await _client.PostAsJsonAsync("/api/standings/competitions", request);
+        var competitionsResponse = await _client.PostAsJsonAsync("/api/volleyball/standings/competitions", request);
         var json = await competitionsResponse.Content.ReadAsStringAsync();
         var responseObj = JsonSerializer.Deserialize<GetCompetitionsResponse>(json, _jsonOptions);
 
@@ -179,7 +179,7 @@ public class StandingsApiIntegrationTests : IClassFixture<WebApplicationFactory<
             };
 
             // Act
-            var standingsResponse = await _client.PostAsJsonAsync("/api/standings", standingsRequest);
+            var standingsResponse = await _client.PostAsJsonAsync("/api/volleyball/standings", standingsRequest);
 
             if (standingsResponse.StatusCode == HttpStatusCode.OK)
             {
