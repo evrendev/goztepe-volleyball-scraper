@@ -1,7 +1,11 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { fixtureService } from "@/services/volleyballService";
-import type { Game, LeagueDefinition, FixtureRequest } from "@/types";
+import type {
+  Game,
+  LeagueDefinition,
+  FixtureRequest,
+} from "@/types/volleyball";
 
 export const useFixtureStore = defineStore("fixture", () => {
   const leagues = ref<LeagueDefinition[]>([]);
@@ -135,7 +139,9 @@ export const useFixtureStore = defineStore("fixture", () => {
   }
 
   function selectAllLeagues() {
-    selectedLeagueCodes.value = leagues.value.map((l) => l.code);
+    selectedLeagueCodes.value = leagues.value.map(
+      (l: LeagueDefinition) => l.code,
+    );
   }
 
   function clearLeagueSelection() {
