@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Game, GameResult } from "@/types";
+import type { Game, GameResult } from "@/types/volleyball";
 
 interface Props {
   gameData: Game | GameResult;

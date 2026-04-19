@@ -1,96 +1,38 @@
 <script setup lang="ts">
-import { onMounted, watch, computed } from "vue";
-import { useFixtureStore } from "@/stores/fixture";
-import { useStandingsStore } from "@/stores/standings";
+import { onMounted, watch } from "vue";
+import { useStandingsStore } from "@/stores/volleyball/standings";
 
-interface Props {
-  mode: "fixture" | "standings";
-}
+const store = useStandingsStore();
 
-const props = withDefaults(defineProps<Props>(), {
-  mode: "fixture",
-});
-
-// Use appropriate store based on mode
-const fixtureStore = useFixtureStore();
-const standingsStore = useStandingsStore();
-
-const store = computed(() =>
-  props.mode === "fixture" ? fixtureStore : standingsStore,
-);
-
-// Handler for the 4th column selection (Division/Competition)
-function selectFourthColumn(value: string) {
-  if (props.mode === "fixture") {
-    // For fixture: select division
-    fixtureStore.changeDivision(value);
-  } else {
-    // For standings: select competition
-    const competition = standingsStore.competitions.find(
-      (c) => c.name === value,
-    );
-    if (competition) {
-      standingsStore.selectCompetition(competition);
-    }
+function selectCompetition(competitionName: string) {
+  const competition = store.competitions.find(
+    (c) => c.name === competitionName,
+  );
+  if (competition) {
+    store.selectCompetition(competition);
   }
 }
-
-// Computed for the 4th column options and config
-const fourthColumnConfig = computed(() => {
-  if (props.mode === "fixture") {
-    return {
-      label: "Küme/Grup",
-      placeholder: "Küme/Grup Seçiniz",
-      options: fixtureStore.availableDivisions,
-      value: fixtureStore.selectedDivision,
-      disabled:
-        !fixtureStore.selectedLeagueCode ||
-        !fixtureStore.availableDivisions.length,
-    };
-  } else {
-    return {
-      label: "Yarışma",
-      placeholder: "Yarışma Seçiniz",
-      options: standingsStore.competitions.map((c) => ({
-        code: c.name,
-        name: c.displayName,
-      })),
-      value: standingsStore.selectedCompetition?.name || "",
-      disabled:
-        !standingsStore.selectedLeagueCode ||
-        !standingsStore.competitions.length,
-    };
-  }
-});
 
 onMounted(() => {
   // Load leagues for both pages to use
-  store.value.fetchLeagues();
+  store.fetchLeagues();
 
   // Watch for category changes and reload leagues
   watch(
-    () => store.value.selectedCategory,
+    () => store.selectedCategory,
     (newCategory) => {
       if (newCategory) {
-        store.value.fetchLeagues();
+        store.fetchLeagues();
       }
     },
   );
 
-  // Watch for league changes and automatically load competitions/divisions
+  // Watch for league changes and automatically load competitions
   watch(
-    () => store.value.selectedLeagueCode,
+    () => store.selectedLeagueCode,
     (newLeagueCode) => {
-      if (
-        newLeagueCode &&
-        store.value.selectedSeason &&
-        store.value.selectedCategory
-      ) {
-        if (props.mode === "fixture") {
-          fixtureStore.fetchDivisions();
-        } else {
-          standingsStore.fetchCompetitions();
-        }
+      if (newLeagueCode && store.selectedSeason && store.selectedCategory) {
+        store.fetchCompetitions();
       }
     },
   );
@@ -102,7 +44,7 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-        {{ mode === "fixture" ? "Fikstür Seçimi" : "Puan Durumu Seçimi" }}
+        Puan Durumu Seçimi
       </h2>
       <button
         @click="store.resetAll()"
@@ -182,19 +124,12 @@ onMounted(() => {
           @change="
             store.changeLeague(($event.target as HTMLSelectElement).value)
           "
-          :disabled="
-            !store.selectedCategory ||
-            !(mode === 'fixture'
-              ? store.availableLeagues?.length
-              : store.availableLeagues?.length)
-          "
+          :disabled="!store.selectedCategory || !store.availableLeagues.length"
           class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-goztepe-red disabled:opacity-50"
         >
           <option value="">Lig Seçiniz</option>
           <option
-            v-for="league in mode === 'fixture'
-              ? store.availableLeagues
-              : store.availableLeagues"
+            v-for="league in store.availableLeagues"
             :key="league.code"
             :value="league.code"
           >
@@ -203,26 +138,26 @@ onMounted(() => {
         </select>
       </div>
 
-      <!-- Fourth Column (Division/Competition) -->
+      <!-- Competition -->
       <div>
-        <label class="block text-xs font-medium text-gray-600 mb-2">{{
-          fourthColumnConfig.label
-        }}</label>
+        <label class="block text-xs font-medium text-gray-600 mb-2"
+          >Yarışma</label
+        >
         <select
-          :value="fourthColumnConfig.value"
+          :value="store.selectedCompetition?.name || ''"
           @change="
-            selectFourthColumn(($event.target as HTMLSelectElement).value)
+            selectCompetition(($event.target as HTMLSelectElement).value)
           "
-          :disabled="fourthColumnConfig.disabled"
+          :disabled="!store.selectedLeagueCode || !store.competitions.length"
           class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-goztepe-red disabled:opacity-50"
         >
-          <option value="">{{ fourthColumnConfig.placeholder }}</option>
+          <option value="">Yarışma Seçiniz</option>
           <option
-            v-for="option in fourthColumnConfig.options"
-            :key="option.code"
-            :value="option.code"
+            v-for="competition in store.competitions"
+            :key="competition.name"
+            :value="competition.name"
           >
-            {{ option.name }}
+            {{ competition.displayName }}
           </option>
         </select>
       </div>
@@ -248,11 +183,7 @@ onMounted(() => {
           d="M4 12a8 8 0 018-8v8H4z"
         />
       </svg>
-      {{
-        mode === "fixture"
-          ? "Fikstür yükleniyor..."
-          : "Yarışmalar yükleniyor..."
-      }}
+      Yarışmalar yükleniyor...
     </div>
 
     <!-- Error State -->

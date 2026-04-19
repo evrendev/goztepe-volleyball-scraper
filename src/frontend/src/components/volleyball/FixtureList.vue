@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useFixtureStore } from "@/stores/fixture";
+import { useFixtureStore } from "@/stores/volleyball/fixture";
 import GameCard from "./GameCard.vue";
 
 const store = useFixtureStore();

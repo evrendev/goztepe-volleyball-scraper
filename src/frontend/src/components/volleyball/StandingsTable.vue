@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { StandingsRow } from "@/types";
+import type { StandingsRow } from "@/types/volleyball";
 
 interface Props {
   standings: StandingsRow[];

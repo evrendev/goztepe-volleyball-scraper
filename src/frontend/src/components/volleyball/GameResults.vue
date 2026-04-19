@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { GameResult } from "@/types";
+import type { GameResult } from "@/types/volleyball";
 import GameCard from "./GameCard.vue";
 
 interface Props {

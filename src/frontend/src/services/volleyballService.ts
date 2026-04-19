@@ -34,7 +34,7 @@ export const fixtureService = {
   async getLeagues(): Promise<LeagueDefinition[]> {
     const response = await request<
       { code: string; displayName: string; category: string }[]
-    >("/api/fixture/leagues");
+    >("/api/volleyball/fixture/leagues");
     return response.map((league) => ({
       code: league.code,
       name: league.displayName,
@@ -45,8 +45,8 @@ export const fixtureService = {
 
   getGames(payload: FixtureRequest, forceRefresh = false): Promise<Game[]> {
     const url = forceRefresh
-      ? "/api/fixture/games?forceRefresh=true"
-      : "/api/fixture/games";
+      ? "/api/volleyball/fixture/games?forceRefresh=true"
+      : "/api/volleyball/fixture/games";
     return request<FixtureResponse>(url, {
       method: "POST",
       body: JSON.stringify(payload),
@@ -61,13 +61,13 @@ export const fixtureService = {
   },
 
   getCacheStatus(): Promise<CacheStatus> {
-    return request<CacheStatus>("/api/fixture/cache/status");
+    return request<CacheStatus>("/api/volleyball/fixture/cache/status");
   },
 
   clearCache(seasonId?: string): Promise<void> {
     const url = seasonId
-      ? `/api/fixture/cache?seasonId=${encodeURIComponent(seasonId)}`
-      : "/api/fixture/cache";
+      ? `/api/volleyball/fixture/cache?seasonId=${encodeURIComponent(seasonId)}`
+      : "/api/volleyball/fixture/cache";
     return request<void>(url, { method: "DELETE" });
   },
 };
@@ -75,14 +75,17 @@ export const fixtureService = {
 export const standingsService = {
   // Standings API endpoints
   getCompetitions(payload: CompetitionRequest): Promise<CompetitionsResponse> {
-    return request<CompetitionsResponse>("/api/standings/competitions", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
+    return request<CompetitionsResponse>(
+      "/api/volleyball/standings/competitions",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
   },
 
   getStandings(payload: StandingsRequest): Promise<StandingsResponse> {
-    return request<StandingsResponse>("/api/standings", {
+    return request<StandingsResponse>("/api/volleyball/standings", {
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -98,19 +101,19 @@ export const standingsService = {
     competitions: any[];
   }> {
     const url = category
-      ? `/api/standings/competitions/goztepe?seasonId=${seasonId}&category=${category}`
-      : `/api/standings/competitions/goztepe?seasonId=${seasonId}`;
+      ? `/api/volleyball/standings/competitions/goztepe?seasonId=${seasonId}&category=${category}`
+      : `/api/volleyball/standings/competitions/goztepe?seasonId=${seasonId}`;
     return request(url);
   },
 
   getCacheStatus(): Promise<CacheStatus> {
-    return request<CacheStatus>("/api/standings/cache/status");
+    return request<CacheStatus>("/api/volleyball/standings/cache/status");
   },
 
   clearCache(seasonId?: string): Promise<void> {
     const url = seasonId
-      ? `/api/standings/cache?seasonId=${encodeURIComponent(seasonId)}`
-      : "/api/standings/cache";
+      ? `/api/volleyball/standings/cache?seasonId=${encodeURIComponent(seasonId)}`
+      : "/api/volleyball/standings/cache";
     return request<void>(url, { method: "DELETE" });
   },
 };

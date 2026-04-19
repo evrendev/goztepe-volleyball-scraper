@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useFixtureStore } from "@/stores/fixture";
+import { useFixtureStore } from "@/stores/volleyball/fixture";
 
 const store = useFixtureStore();
 </script>

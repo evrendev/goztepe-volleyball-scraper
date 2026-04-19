@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useFixtureStore } from "@/stores/fixture";
-import LeagueFilter from "@/components/LeagueFilter.vue";
-import GameList from "@/components/GameList.vue";
-import CacheManager from "@/components/CacheManager.vue";
+import { useFixtureStore } from "@/stores/volleyball/fixture";
+import LeagueFilter from "@/components/volleyball/LeagueFilter.vue";
+import GameList from "@/components/volleyball/GameList.vue";
+import CacheManager from "@/components/volleyball/CacheManager.vue";
 
 const store = useFixtureStore();
 
@@ -47,13 +47,13 @@ onMounted(() => {
         <!-- Navigation Links -->
         <nav class="flex space-x-4">
           <router-link
-            :to="{ name: 'fixture' }"
+            :to="{ name: 'volleyball-fixture' }"
             class="px-3 py-2 text-sm font-medium rounded-md bg-goztepe-red text-white"
           >
             Fikstür
           </router-link>
           <router-link
-            :to="{ name: 'standings' }"
+            :to="{ name: 'volleyball-standings' }"
             class="px-3 py-2 text-sm font-medium rounded-md text-gray-300 hover:text-white hover:bg-goztepe-red transition-colors"
           >
             Puan Durumu

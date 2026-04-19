@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { fixtureService, standingsService } from "@/services/volleyballService";
-import type { CacheStatus } from "@/types";
+import type { CacheStatus } from "@/types/volleyball";
 
 interface CacheInfo {
   name: string;

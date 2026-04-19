@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStandingsStore } from "@/stores/standings";
-import CompetitionSelector from "@/components/CompetitionSelector.vue";
-import StandingsTable from "@/components/StandingsTable.vue";
-import GameResults from "@/components/GameResults.vue";
-import CacheManager from "@/components/CacheManager.vue";
+import { useStandingsStore } from "@/stores/volleyball/standings";
+import CompetitionSelector from "@/components/volleyball/CompetitionSelector.vue";
+import StandingsTable from "@/components/volleyball/StandingsTable.vue";
+import GameResults from "@/components/volleyball/GameResults.vue";
+import CacheManager from "@/components/volleyball/CacheManager.vue";
 
 const store = useStandingsStore();
 
@@ -48,13 +48,13 @@ onMounted(() => {
         <!-- Navigation Links -->
         <nav class="flex space-x-4">
           <router-link
-            :to="{ name: 'fixture' }"
+            :to="{ name: 'volleyball-fixture' }"
             class="px-3 py-2 text-sm font-medium rounded-md text-gray-300 hover:text-white hover:bg-goztepe-red transition-colors"
           >
             Fikstür
           </router-link>
           <router-link
-            :to="{ name: 'standings' }"
+            :to="{ name: 'volleyball-standings' }"
             class="px-3 py-2 text-sm font-medium rounded-md bg-goztepe-red text-white"
           >
             Puan Durumu

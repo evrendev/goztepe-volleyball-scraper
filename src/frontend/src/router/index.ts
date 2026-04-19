@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
-import FixtureView from "@/views/FixtureView.vue";
-import StandingsView from "@/views/StandingsView.vue";
+import FixtureView from "@/views/volleyball/FixtureView.vue";
+import StandingsView from "@/views/volleyball/StandingsView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -8,17 +8,24 @@ const router = createRouter({
     {
       path: "/",
       name: "home",
-      redirect: { name: "fixture" },
+      redirect: { name: "volleyball-fixture" },
     },
     {
-      path: "/fikstur",
-      name: "fixture",
-      component: FixtureView,
-    },
-    {
-      path: "/puan-durumu",
-      name: "standings",
-      component: StandingsView,
+      path: "/voleybol",
+      name: "volleyball",
+      redirect: { name: "volleyball-fixture" },
+      children: [
+        {
+          path: "fikstur",
+          name: "volleyball-fixture",
+          component: FixtureView,
+        },
+        {
+          path: "puan-durumu",
+          name: "volleyball-standings",
+          component: StandingsView,
+        },
+      ],
     },
     {
       // Catch-all route for invalid URLs - redirect to home
