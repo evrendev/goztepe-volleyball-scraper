@@ -7,7 +7,9 @@ import type {
   StandingsRequest,
   StandingsResponse,
   LeagueDefinition,
-} from "@/types";
+  StandingsRow,
+  GameResult,
+} from "@/types/volleyball";
 
 export const useStandingsStore = defineStore("standings", () => {
   const competitions = ref<Competition[]>([]);
@@ -46,12 +48,12 @@ export const useStandingsStore = defineStore("standings", () => {
 
   const goztepeStandings = computed(() => {
     if (!standings.value?.hasGoztepe) return null;
-    return standings.value.standings.find((s) => s.isGoztepe);
+    return standings.value.standings.find((s: StandingsRow) => s.isGoztepe);
   });
 
   const goztepeGames = computed(() => {
     if (!standings.value?.hasGoztepe) return [];
-    return standings.value.games.filter((g) => g.isGoztepe);
+    return standings.value.games.filter((g: GameResult) => g.isGoztepe);
   });
 
   async function fetchLeagues() {
