@@ -63,8 +63,8 @@ builder.Services.AddHttpClient("StandingsClient", client =>
 });
 
 builder.Services.AddMemoryCache();
-builder.Services.AddSingleton<FixtureCacheService>();
-builder.Services.AddScoped<FixtureScraperService>();
+builder.Services.AddSingleton<IFixtureCacheService, FixtureCacheService>();
+builder.Services.AddScoped<IFixtureScraperService, FixtureScraperService>();
 builder.Services.AddSingleton<IStandingsCacheService, StandingsCacheService>();
 builder.Services.AddScoped<IStandingsScraperService, StandingsScraperService>();
 

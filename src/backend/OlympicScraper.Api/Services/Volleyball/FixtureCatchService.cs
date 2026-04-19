@@ -2,7 +2,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace OlympicScraper.Api.Services.Volleyball;
 
-public class FixtureCacheService
+public class FixtureCacheService : IFixtureCacheService
 {
     private readonly IMemoryCache _cache;
     private readonly ILogger<FixtureCacheService> _logger;

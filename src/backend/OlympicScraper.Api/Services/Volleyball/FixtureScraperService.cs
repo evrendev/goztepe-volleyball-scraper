@@ -2,17 +2,17 @@ using HtmlAgilityPack;
 
 namespace OlympicScraper.Api.Services.Volleyball;
 
-public class FixtureScraperService
+public class FixtureScraperService : IFixtureScraperService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<FixtureScraperService> _logger;
-    private readonly FixtureCacheService _cache;
+    private readonly IFixtureCacheService _cache;
     private const string BaseUrl = $"{VolleyballConstants.BaseUrl}/Fiksturler";
 
     public FixtureScraperService(
         IHttpClientFactory httpClientFactory,
         ILogger<FixtureScraperService> logger,
-        FixtureCacheService cache)
+        IFixtureCacheService cache)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
